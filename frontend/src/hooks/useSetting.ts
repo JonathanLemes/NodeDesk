@@ -3,7 +3,7 @@ import { useSettings, useUpdateSettings } from "@/services/queries"
 import type { Settings } from "@/types/api"
 
 export const DEFAULT_SETTINGS = {
-  wallpaper: "builtin:alpine",
+  wallpaper: "builtin:dunes",
   "dock.size": 56,
   "dock.magnify": true,
   "desktop.watermark": true,

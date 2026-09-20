@@ -37,7 +37,7 @@ export function LoginScreen({ status }: { status: AuthStatus }) {
 
   return (
     <div className="fixed inset-0">
-      <Wallpaper value={settings?.wallpaper ?? "builtin:alpine"} />
+      <Wallpaper value={settings?.wallpaper ?? "builtin:dunes"} />
       <div className="absolute inset-0 bg-black/20 backdrop-blur-2xl" />
       <form onSubmit={submit} className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white animate-[fade-in_0.3s]">
         <div className="mb-1 grid size-24 place-items-center rounded-full bg-white/20 shadow-lg ring-1 ring-white/30 backdrop-blur-xl">
