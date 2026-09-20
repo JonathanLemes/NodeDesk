@@ -16,13 +16,23 @@ Out of scope: a compromised admin session (it can do what the admin can do, with
 - Every state-changing request is checked for a same-origin `Origin` header (CSRF).
 - Sign-ins (success and failure), container / app actions, deletions, edits and changes to apps and authorised folders are written to an audit table (Settings → Activity).
 
-## No arbitrary execution
+## No arbitrary execution (except the Terminal)
 
-There is no `/exec` and no endpoint that accepts a command. Operations are typed: `POST /api/docker/containers/{id}/restart`, `POST /api/files/move`, `POST /api/apps/{id}/stop`, and so on.
+Apart from the Terminal (next section) there is no `/exec` and no endpoint that accepts a command. Operations are typed: `POST /api/docker/containers/{id}/restart`, `POST /api/files/move`, `POST /api/apps/{id}/stop`, and so on.
 
 - Docker uses the Engine SDK. Container names are validated against `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`.
 - systemd is driven over **D-Bus**, not `systemctl`. Unit names are validated at save time and only units belonging to a registered app can be acted on.
 - The only subprocess is the optional `smartctl --json -H -A /dev/<disk>`, with fixed arguments and a device name taken from `/sys/block`, never from the request.
+
+## Terminal
+
+The Terminal app is a shell running as the user NodeDesk runs as: anyone with an admin session can run anything that user can. It is on by default (the Docker socket and the file manager already reach a long way) and **`NODEDESK_TERMINAL=disabled`** removes it entirely: the API answers 403 and the app shows that it is off.
+
+- Behind the session cookie like everything else. Opening, closing and killing shells go to the audit log.
+- The WebSocket (`/api/terminal/sessions/{id}/ws`) checks `Origin` itself, because the CSRF check only covers state-changing methods and a WebSocket handshake is a GET: a page on another site cannot open a shell with the admin's cookie (covered by a test).
+- Session ids are random 96-bit values. Shells get the server's environment **minus every `NODEDESK_*` variable**, so settings such as a seed password are not readable from `env`.
+- Lifetime: closing a tab or the window ends its shell (SIGHUP to the process group, SIGKILL after 1.5 s if ignored; `nohup` / `disown` jobs survive, as on any terminal). A dropped connection (a phone locking its screen) keeps the shell for `NODEDESK_TERMINAL_DETACH_TTL` (default 5 min) so the page can re-attach and get the recent output back; after that it is reaped. At most 32 sessions at once.
+- The systemd unit does not set `NoNewPrivileges`, so `sudo` works inside the terminal (with the user's own password). That makes a compromised admin session equivalent to root on the host if the user has sudo rights; use `NODEDESK_TERMINAL=disabled` if that is not acceptable.
 
 ## File access
 
@@ -50,6 +60,7 @@ The UI is served with a strict CSP (`script-src 'self'`, no inline scripts), `X-
 - There is no TLS termination in NodeDesk itself: use a reverse proxy, or keep it on a trusted network / Tailscale.
 - One admin, no roles or 2FA yet.
 - The Docker socket is powerful: anyone with an admin session can start / stop any container NodeDesk can see.
+- The Terminal is a full shell for the admin session; disable it if you do not want that on this instance.
 
 ## Reporting
 

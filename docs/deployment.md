@@ -31,6 +31,10 @@ git pull && make build && sudo deploy/install.sh
 
 The script keeps `/etc/nodedesk/nodedesk.env` and restarts the service. Migrations run automatically.
 
+## Terminal and `sudo`
+
+The unit deliberately does **not** set `NoNewPrivileges=true`: that flag is inherited by every child process and makes `sudo` (and any setuid helper) fail inside the Terminal app with "the no new privileges flag is set". The terminal is therefore as powerful as your account, `sudo` included ([security](security.md#terminal)); `NODEDESK_TERMINAL=disabled` turns it off. If you install an older copy of the unit that still has the flag, re-run `deploy/install.sh`.
+
 ## Boot order
 
 The unit starts after the network and Docker. If your authorised folders live on a disk that mounts late, add a drop-in with `RequiresMountsFor=/mnt/your-disk` (`sudo systemctl edit nodedesk`): otherwise NodeDesk shows that folder as "unavailable" until the disk appears (roots are opened on demand, so it recovers by itself).
