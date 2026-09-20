@@ -1,0 +1,22 @@
+# build output
+/bin/
+/dist/
+backend/web/dist/*
+!backend/web/dist/.gitkeep
+frontend/dist/
+frontend/node_modules/
+node_modules/
+
+# runtime data
+/data/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.local
+
+# tooling
+.DS_Store
+*.log
+.vscode/
+.idea/
