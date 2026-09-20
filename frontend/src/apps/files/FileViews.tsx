@@ -15,7 +15,7 @@ export function sortEntries(entries: FileEntry[], sort: Sort): FileEntry[] {
   const m = sort.dir === "asc" ? 1 : -1
   return [...entries].sort((a, b) => {
     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1
-    let r = 0
+    let r: number
     switch (sort.key) {
       case "size": r = a.size - b.size; break
       case "modTime": r = a.modTime - b.modTime; break
@@ -115,19 +115,19 @@ interface ListViewProps extends ViewProps {
 
 export function ListView(p: ListViewProps) {
   const { over, bind } = useDropTarget(p.onDropOn)
-  const Head = ({ k, children, className }: { k: SortKey; children: string; className?: string }) => (
+  const head = (k: SortKey, label: string, className?: string) => (
     <button onClick={() => p.onSort(k)} className={cn("flex items-center gap-1 text-left hover:text-foreground", className)}>
-      {children}
+      {label}
       {p.sort.key === k && (p.sort.dir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}
     </button>
   )
   return (
     <div className="min-w-[520px] text-[13px]">
       <div className="sticky top-0 z-[1] flex items-center gap-3 border-b border-border/70 bg-background/95 px-5 py-1.5 text-[11.5px] font-medium text-muted-foreground backdrop-blur">
-        <Head k="name" className="flex-1">Name</Head>
-        <Head k="modTime" className="w-36">Modified</Head>
-        <Head k="size" className="w-20 justify-end">Size</Head>
-        <Head k="kind" className="w-32">Kind</Head>
+        {head("name", "Name", "flex-1")}
+        {head("modTime", "Modified", "w-36")}
+        {head("size", "Size", "w-20 justify-end")}
+        {head("kind", "Kind", "w-32")}
       </div>
       <div className="p-2">
         {p.entries.map((e) => {

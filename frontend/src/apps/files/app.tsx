@@ -8,7 +8,7 @@ export default defineDesktopApp({
   title: "Files",
   icon: (size) => <FilesIcon size={size} />,
   component: lazy(() => import("./FilesApp")),
-  defaultSize: { w: 980, h: 600 },
+  defaultSize: { w: 980, h: 620 },
   minSize: { w: 520, h: 360 },
   dockOrder: 2,
 })

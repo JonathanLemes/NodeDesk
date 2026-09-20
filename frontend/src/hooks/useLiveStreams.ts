@@ -43,7 +43,9 @@ export function useLiveStreams(enabled: boolean) {
       events.addEventListener("change", (e) => {
         const { topic } = JSON.parse((e as MessageEvent).data) as { topic: string }
         if (topic === "docker") {
-          qc.invalidateQueries({ queryKey: keys.docker })
+          // Only the cheap lists; stats have their own 5 s poll while the Docker window is visible.
+          qc.invalidateQueries({ queryKey: [...keys.docker, "containers"] })
+          qc.invalidateQueries({ queryKey: [...keys.docker, "status"] })
           qc.invalidateQueries({ queryKey: keys.apps })
         }
       })

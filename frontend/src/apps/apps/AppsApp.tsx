@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { resolveUrl } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -24,7 +25,9 @@ export default function AppsApp({ props }: DesktopAppProps) {
   const [query, setQuery] = useState("")
   const [draft, setDraft] = useState<(Omit<ServiceApp, "id" | "order"> & { id?: string }) | null>(null)
   const [removing, setRemoving] = useState<ServiceAppView | null>(null)
-  const { data: candidates } = useDiscover(tab === "discover")
+  const [showStopped, setShowStopped] = useState(false)
+  const { data: discovered } = useDiscover(tab === "discover")
+  const candidates = useMemo(() => (discovered ?? []).filter((c) => showStopped || c.state === "running"), [discovered, showStopped])
   const selected = typeof props.select === "string" ? props.select : null
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function AppsApp({ props }: DesktopAppProps) {
 
   const addCandidate = (c: AppCandidate) =>
     create.mutate({ name: prettify(c.name), type: "docker", containers: [c.name], url: c.url, icon: c.icon ?? "", category: c.category ?? c.project ?? "", favorite: false })
-  const addAll = () => candidates?.forEach(addCandidate)
+  const addAll = () => candidates.forEach(addCandidate)
 
   return (
     <div className="flex h-full flex-col">
@@ -123,11 +126,12 @@ export default function AppsApp({ props }: DesktopAppProps) {
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           <div className="mb-3 flex items-center px-2">
             <p className="flex-1 text-[13px] text-muted-foreground">Docker containers that are not part of an app yet.</p>
-            {(candidates?.length ?? 0) > 1 && <Button size="sm" variant="secondary" onClick={addAll}>Add all</Button>}
+            <label className="mr-3 flex items-center gap-2 text-xs text-muted-foreground"><Switch checked={showStopped} onCheckedChange={setShowStopped} />Show stopped</label>
+            {candidates.length > 1 && <Button size="sm" variant="secondary" onClick={addAll}>Add all</Button>}
           </div>
-          {candidates?.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">Everything is already added.</p>}
+          {discovered && candidates.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">Nothing new to add.</p>}
           <ul>
-            {candidates?.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())).map((c) => (
+            {candidates.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())).map((c) => (
               <li key={c.name} className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-foreground/[0.04]">
                 <AppIcon name={c.name} icon={c.icon} size={40} />
                 <div className="min-w-0 flex-1">

@@ -47,7 +47,7 @@ export function TrashView() {
     <div className="flex h-full flex-col" onClick={() => setSel(null)}>
       <div className="flex items-center gap-2 border-b border-border/70 px-5 py-2">
         <span className="flex-1 text-[13px] text-muted-foreground">{items?.length ?? 0} item{items?.length === 1 ? "" : "s"}</span>
-        <Button size="sm" variant="secondary" disabled={!selected} onClick={(e) => { e.stopPropagation(); selected && restore(selected) }}>Restore</Button>
+        <Button size="sm" variant="secondary" disabled={!selected} onClick={(e) => { e.stopPropagation(); if (selected) restore(selected) }}>Restore</Button>
         <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setConfirm({}) }}>Empty Trash</Button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-2">

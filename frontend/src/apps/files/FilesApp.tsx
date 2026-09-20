@@ -233,7 +233,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const onSelect = (ev: MouseEvent, e: FileEntry) => {
     ev.stopPropagation()
     if (ev.ctrlKey || ev.metaKey) {
-      setSelection((s) => { const n = new Set(s); n.has(e.path) ? n.delete(e.path) : n.add(e.path); return n })
+      setSelection((s) => { const n = new Set(s); if (n.has(e.path)) n.delete(e.path); else n.add(e.path); return n })
       anchor.current = e.path
     } else if (ev.shiftKey && anchor.current) {
       const a = entries.findIndex((x) => x.path === anchor.current)
@@ -282,7 +282,8 @@ export default function FilesApp({ props }: DesktopAppProps) {
     else if (e.key === "F2" && selected.length === 1 && !readOnly) setRenaming(selected[0].path)
     else if ((e.key === "Delete" || e.key === "Backspace") && selected.length && !readOnly) {
       e.preventDefault()
-      e.shiftKey ? setConfirm(selected) : trash(selected)
+      if (e.shiftKey) setConfirm(selected)
+      else trash(selected)
     } else if (e.key === "Escape") { setSelection(new Set()); setQuery("") }
     else if (e.key === "Backspace" && dir && dir.path !== "/") go({ ...dir, path: parentOf(dir.path) })
     else if (e.key.startsWith("Arrow") && entries.length) {

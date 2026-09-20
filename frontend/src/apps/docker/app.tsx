@@ -8,7 +8,7 @@ export default defineDesktopApp({
   title: "Docker",
   icon: (size) => <DockerIcon size={size} />,
   component: lazy(() => import("./DockerApp")),
-  defaultSize: { w: 900, h: 600 },
+  defaultSize: { w: 960, h: 640 },
   minSize: { w: 520, h: 360 },
   dockOrder: 1,
 })

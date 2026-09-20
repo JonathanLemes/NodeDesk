@@ -77,7 +77,7 @@ export function WidgetLayer() {
 
   if (!hydrated) return null
   return (
-    <div className="absolute inset-0 z-20">
+    <div className="pointer-events-none absolute inset-0 z-20">
       {placements.map((p) => <WidgetHost key={p.instanceId} placement={p} editing={editing} />)}
       {editing && <EditBar />}
       <WidgetGallery />
@@ -151,7 +151,7 @@ function WidgetHost({ placement, editing }: { placement: WidgetPlacement; editin
         <div
           ref={el}
           onPointerDown={startMove}
-          className={`glass absolute overflow-hidden rounded-[22px] text-foreground ${editing ? "cursor-grab ring-2 ring-primary/60 active:cursor-grabbing" : ""}`}
+          className={`glass pointer-events-auto absolute overflow-hidden rounded-[22px] text-foreground ${editing ? "cursor-grab ring-2 ring-primary/60 active:cursor-grabbing" : ""}`}
           style={{ left: x, top: y, width: placement.w, height: placement.h, zIndex: placement.z }}
         >
           <div className={editing ? "pointer-events-none h-full select-none" : "h-full"}>
@@ -222,7 +222,7 @@ function FieldEditor({ field, settings, onChange }: { field: SettingField; setti
 function EditBar() {
   const setEditing = useUi((s) => s.setEditingWidgets)
   return (
-    <div className="glass-strong fixed top-11 left-1/2 z-[8600] flex -translate-x-1/2 items-center gap-2 rounded-full py-1.5 pr-1.5 pl-4 text-[13px] animate-[pop-in_0.18s_ease-out]">
+    <div className="glass-strong pointer-events-auto fixed top-11 left-1/2 z-[8600] flex -translate-x-1/2 items-center gap-2 rounded-full py-1.5 pr-1.5 pl-4 text-[13px] animate-[pop-in_0.18s_ease-out]">
       <span className="text-muted-foreground">Drag to arrange · resize from the corner</span>
       <Button size="sm" variant="secondary" className="rounded-full" onClick={() => useUi.getState().setWidgetGalleryOpen(true)}>
         <Plus data-icon="inline-start" />Add

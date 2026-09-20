@@ -38,8 +38,16 @@ export const useSystemInfo = () =>
   useQuery({ queryKey: keys.system, queryFn: () => api.get<SystemInfo>("/api/system/info"), staleTime: 60_000 })
 
 // ----------------------------------------------------------- settings
-export const useSettings = () =>
-  useQuery({ queryKey: keys.settings, queryFn: () => api.get<Settings>("/api/settings"), staleTime: Infinity })
+export function useSettings() {
+  const { data: auth } = useAuth()
+  // Settings are private: do not ask for them before signing in.
+  return useQuery({
+    queryKey: keys.settings,
+    queryFn: () => api.get<Settings>("/api/settings"),
+    staleTime: Infinity,
+    enabled: !!auth?.authenticated,
+  })
+}
 
 export function useUpdateSettings() {
   const qc = useQueryClient()
