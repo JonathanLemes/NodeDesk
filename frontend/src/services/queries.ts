@@ -238,3 +238,21 @@ export const storageApi = {
 
 // -------------------------------------------------------------- audit
 export const useAudit = () => useQuery({ queryKey: keys.audit, queryFn: () => api.get<AuditEvent[]>("/api/audit") })
+
+// ------------------------------------------------------------ terminal
+export interface TerminalSession { id: string; cwd: string; shell: string }
+
+export const terminalApi = {
+  status: () => api.get<{ enabled: boolean; shell: string }>("/api/terminal/status"),
+  /** `from` starts the shell in that session's current directory (a new tab). */
+  create: (body: { cols?: number; rows?: number; cwd?: string; from?: string }) => api.post<TerminalSession>("/api/terminal/sessions", body),
+  get: (id: string) => api.get<{ id: string; cwd: string }>(`/api/terminal/sessions/${id}`),
+  /** Ends the shell. `keepalive` lets the request finish while the page is closing. */
+  kill: (id: string, keepalive = false) =>
+    fetch(`/api/terminal/sessions/${id}`, { method: "DELETE", credentials: "same-origin", keepalive }).catch(() => undefined),
+  socketUrl: (id: string) => `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/terminal/sessions/${id}/ws`,
+}
+
+/** Whether this server has the terminal enabled (undefined while loading). */
+export const useTerminalStatus = () =>
+  useQuery({ queryKey: ["terminal", "status"], queryFn: terminalApi.status, staleTime: 60_000 })

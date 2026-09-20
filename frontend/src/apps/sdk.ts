@@ -20,6 +20,11 @@ export interface DesktopAppDefinition {
   singleton?: boolean
   /** Position in the dock; omit to keep the app out of the dock. */
   dockOrder?: number
+  /**
+   * How a phone closes the app. "back" (default) is a ‹ arrow on the left, like navigating back;
+   * "x" is a ✕ on the right and leaves the left side to the app (its own back button, say).
+   */
+  mobileClose?: "back" | "x"
 }
 
 /** Mutates instead of spreading so `title` can be a getter that follows the current language. */

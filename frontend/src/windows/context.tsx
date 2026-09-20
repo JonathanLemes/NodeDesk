@@ -15,6 +15,9 @@ export function useWindowContext(): WindowContextValue {
   return ctx
 }
 
+/** Like useWindowContext, but null outside a window (desktop-wide code). */
+export const useOptionalWindowContext = () => useContext(WindowContext)
+
 /** Renders its children in the window's title bar (next to the traffic lights). */
 export function WindowToolbar({ children }: { children: ReactNode }) {
   const { titlebar } = useWindowContext()

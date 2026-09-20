@@ -120,6 +120,7 @@ export function WindowFrame({ win }: { win: DesktopWindow }) {
       <div
         ref={frame}
         data-focused={focused}
+        data-window-id={win.id}
         onPointerDownCapture={() => focus(win.id)}
         className={cn(
           "window-shadow absolute flex flex-col overflow-hidden rounded-[14px] bg-window text-foreground",

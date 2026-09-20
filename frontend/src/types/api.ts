@@ -254,4 +254,6 @@ export type Settings = Partial<{
   /** Phone home screen: keys of icons in display order, and the ones the user removed. */
   "mobile.layout": { order: string[]; hidden: string[] }
   "files.favorites": FileRef[]
+  /** Keyboard shortcut overrides by shortcut id; an empty list unbinds it. */
+  shortcuts: Record<string, string[]>
 }>
