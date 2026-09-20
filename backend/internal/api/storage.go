@@ -38,8 +38,8 @@ func (s *Server) storageRoutes(r chi.Router) {
 	}))
 }
 
-// startAnalysis only accepts mountpoints reported by the storage overview or folders
-// inside an authorised file root, so it cannot be used to probe arbitrary host paths.
+// startAnalysis only accepts folders on a mounted disk (as reported by the storage
+// overview) or inside an authorised file root; virtual filesystems are out of reach.
 func (s *Server) startAnalysis(w http.ResponseWriter, r *http.Request) error {
 	var in struct {
 		Path  string `json:"path"`
@@ -52,18 +52,28 @@ func (s *Server) startAnalysis(w http.ResponseWriter, r *http.Request) error {
 		return httpx.BadRequest("path must be absolute")
 	}
 	dir := filepath.Clean(in.Path)
-	allowed := s.Storage.IsMountpoint(dir)
+	real, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return httpx.BadRequest("cannot access that path")
+	}
+	dir = real
+	allowed := false
+	for _, m := range s.Storage.Overview().Mounts {
+		mp := strings.TrimRight(m.Mountpoint, "/")
+		if real == m.Mountpoint || strings.HasPrefix(real, mp+"/") {
+			allowed = true
+			break
+		}
+	}
 	if !allowed {
 		roots, err := s.Files.Roots()
 		if err != nil {
 			return err
 		}
-		real, rerr := filepath.EvalSymlinks(dir)
 		for _, root := range roots {
 			rr, err := filepath.EvalSymlinks(root.Path)
-			if rerr == nil && err == nil && (real == rr || strings.HasPrefix(real, strings.TrimRight(rr, "/")+"/")) {
+			if err == nil && (real == rr || strings.HasPrefix(real, strings.TrimRight(rr, "/")+"/")) {
 				allowed = true
-				dir = real
 				break
 			}
 		}

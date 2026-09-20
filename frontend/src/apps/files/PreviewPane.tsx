@@ -41,7 +41,7 @@ export function PreviewPane({ root, selected, folderName, folderItems, onOpen, o
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon-sm" aria-label="Actions"><MoreHorizontal /></Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-44">{menu}</DropdownMenuContent>
+            <DropdownMenuContent align="end" className="min-w-44" onCloseAutoFocus={(e) => e.preventDefault()}>{menu}</DropdownMenuContent>
           </DropdownMenu>
         )}
       </div>

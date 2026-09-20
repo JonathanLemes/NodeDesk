@@ -101,7 +101,12 @@ func (s *Server) containerLogStream(w http.ResponseWriter, r *http.Request) {
 	err = s.Docker.StreamLogs(r.Context(), id, tailParam(r), true, func(l string) error {
 		return sse.Event("line", l)
 	})
-	if err != nil && r.Context().Err() == nil {
-		sse.Event("error", err.Error())
+	if r.Context().Err() != nil {
+		return
 	}
+	if err != nil {
+		sse.Event("error", err.Error())
+		return
+	}
+	sse.Event("end", "") // tell EventSource not to reconnect
 }

@@ -90,7 +90,7 @@
     --sidebar-ring: oklch(0.62 0.19 259);
 
     /* desktop surfaces */
-    --glass: oklch(1 0 0 / 0.55);
+    --glass: oklch(1 0 0 / 0.6);
     --glass-strong: oklch(1 0 0 / 0.72);
     --glass-border: oklch(1 0 0 / 0.55);
     --glass-shadow: 0 8px 32px oklch(0.2 0.05 265 / 0.16), 0 1px 0 oklch(1 0 0 / 0.5) inset;

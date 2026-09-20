@@ -473,7 +473,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
             {!readOnly && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild><Button variant="ghost" size="sm"><Plus data-icon="inline-start" />New</Button></DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-44">
+                <DropdownMenuContent align="end" className="min-w-44" onCloseAutoFocus={(e) => e.preventDefault()}>
                   <DropdownMenuItem onSelect={newFolder}><FolderPlus />New Folder</DropdownMenuItem>
                   <DropdownMenuItem onSelect={newFile}><FilePlus />New File</DropdownMenuItem>
                   <DropdownMenuSeparator />

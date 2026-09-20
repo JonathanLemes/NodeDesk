@@ -16,9 +16,13 @@ export function RenameInput({ initial, isDir, onCommit, onCancel, className }: R
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    el.focus()
-    const dot = initial.lastIndexOf(".")
-    el.setSelectionRange(0, !isDir && dot > 0 ? dot : initial.length)
+    // Deferred so it wins over a closing menu handing focus back to its trigger.
+    const t = window.setTimeout(() => {
+      el.focus()
+      const dot = initial.lastIndexOf(".")
+      el.setSelectionRange(0, !isDir && dot > 0 ? dot : initial.length)
+    }, 60)
+    return () => window.clearTimeout(t)
   }, [initial, isDir])
 
   const finish = (commit: boolean) => {
