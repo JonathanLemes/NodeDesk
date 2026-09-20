@@ -244,3 +244,23 @@
   from { transform: rotate(-1.6deg); }
   to { transform: rotate(1.6deg); }
 }
+
+/*
+ * Phone: apps are touch UIs, so text is not selectable and long-press never opens the browser's
+ * copy / share callout (or a native drag "lift" of the item). Fields, the terminal's input and
+ * anything marked data-selectable stay selectable; details are copied from "Get Info".
+ */
+html[data-mobile] body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+html[data-mobile] :is(input, textarea, [contenteditable="true"], [data-selectable], [data-selectable] *) {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+html[data-mobile] :is(img, a) {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}

@@ -4,6 +4,7 @@ import { useState, type DragEvent, type MouseEvent } from "react"
 import { FileIcon } from "@/apps/files/FileIcon"
 import { describeKind, parentOf } from "@/apps/files/paths"
 import { RenameInput } from "@/apps/files/RenameInput"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { formatBytes, formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { FileEntry } from "@/types/api"
@@ -70,6 +71,8 @@ function useDropTarget(onDropOn: ViewProps["onDropOn"]) {
 
 export function GridView(p: ViewProps) {
   const { over, bind } = useDropTarget(p.onDropOn)
+  // A touch long-press would start the browser's native drag (a "lifted" ghost of the item) instead of the menu.
+  const draggable = !useIsMobile()
   return (
     <div className="grid content-start gap-x-2 gap-y-3 p-5 max-md:[--file-col:92px] max-md:p-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(var(--file-col, 112px), 1fr))" }} data-files-grid>
       {p.entries.map((e) => {
@@ -79,7 +82,7 @@ export function GridView(p: ViewProps) {
           <div
             key={e.path}
             data-path={e.path}
-            draggable={!renaming}
+            draggable={draggable && !renaming}
             onDragStart={(ev) => p.onDragStart(ev, e)}
             onClick={(ev) => p.onSelect(ev, e)}
             onDoubleClick={() => p.onOpen(e)}
@@ -116,6 +119,7 @@ interface ListViewProps extends ViewProps {
 
 export function ListView(p: ListViewProps) {
   const { over, bind } = useDropTarget(p.onDropOn)
+  const draggable = !useIsMobile()
   const head = (k: SortKey, label: string, className?: string) => (
     <button onClick={() => p.onSort(k)} className={cn("flex items-center gap-1 text-left hover:text-foreground", className)}>
       {label}
@@ -138,7 +142,7 @@ export function ListView(p: ListViewProps) {
             <div
               key={e.path}
               data-path={e.path}
-              draggable={!renaming}
+              draggable={draggable && !renaming}
               onDragStart={(ev) => p.onDragStart(ev, e)}
               onClick={(ev) => p.onSelect(ev, e)}
               onDoubleClick={() => p.onOpen(e)}

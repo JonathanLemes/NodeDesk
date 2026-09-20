@@ -14,4 +14,6 @@ export default defineDesktopApp({
   defaultSize: { w: 980, h: 620 },
   minSize: { w: 520, h: 360 },
   dockOrder: 2,
+  // Its own ‹ navigates back through folders, so closing is a ✕ on the right.
+  mobileClose: "x",
 })

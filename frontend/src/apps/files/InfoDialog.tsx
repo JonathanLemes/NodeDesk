@@ -15,9 +15,9 @@ export function InfoDialog({ target, onClose }: { target: FileRef | null; onClos
   return (
     <Dialog open={!!target} onOpenChange={(o) => { if (!o) { setCalc(false); onClose() } }}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle className="break-all">{info?.name ?? t("files.properties")}</DialogTitle></DialogHeader>
+        <DialogHeader data-selectable><DialogTitle className="break-all">{info?.name ?? t("files.properties")}</DialogTitle></DialogHeader>
         {info && (
-          <dl className="grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-2 text-[13px]">
+          <dl data-selectable className="grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-2 text-[13px]">
             <dt className="text-muted-foreground">{t("files.col_kind")}</dt><dd>{describeKind(info.name, info.kind)}</dd>
             <dt className="text-muted-foreground">{t("files.where")}</dt><dd className="font-mono text-xs break-all">{info.location}</dd>
             <dt className="text-muted-foreground">{t("files.col_size")}</dt>
