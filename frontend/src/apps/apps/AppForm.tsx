@@ -12,10 +12,10 @@ import { Switch } from "@/components/ui/switch"
 import { useAppMutations, useContainers } from "@/services/queries"
 import type { AppType, ServiceApp } from "@/types/api"
 
-type Draft = Omit<ServiceApp, "id" | "order"> & { id?: string }
+export type Draft = Omit<ServiceApp, "id" | "order"> & { id?: string }
 
 export const emptyDraft = (): Draft => ({
-  name: "", icon: "", type: "docker", url: "", containers: [], systemdUnits: [], favorite: false, category: "",
+  name: "", icon: "", type: "docker", url: "", containers: [], systemdUnits: [], favorite: false, category: "", desktop: false, desktopX: -1, desktopY: -1,
 })
 
 const TYPES: { value: AppType; label: string; hint: string }[] = [
@@ -124,6 +124,10 @@ export function AppForm({ draft, onClose }: { draft: Draft | null; onClose: () =
           <Field orientation="horizontal">
             <Switch id="app-fav" checked={d.favorite} onCheckedChange={(v) => set("favorite", v)} />
             <FieldLabel htmlFor="app-fav">Keep in the dock</FieldLabel>
+          </Field>
+          <Field orientation="horizontal">
+            <Switch id="app-desk" checked={d.desktop} onCheckedChange={(v) => set("desktop", v)} />
+            <FieldLabel htmlFor="app-desk">Show on the desktop</FieldLabel>
           </Field>
         </FieldGroup>
         <DialogFooter>

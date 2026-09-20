@@ -77,15 +77,27 @@ export const useApps = () =>
 export const useDiscover = (enabled: boolean) =>
   useQuery({ queryKey: keys.discover, queryFn: () => api.get<AppCandidate[]>("/api/apps/discover"), enabled })
 
+/** The API rejects unknown fields, so live-status extras of ServiceAppView must not be sent back. */
+function appPayload(a: Partial<ServiceApp>): Partial<ServiceApp> {
+  return {
+    id: a.id, name: a.name, icon: a.icon, type: a.type, url: a.url, containers: a.containers,
+    systemdUnits: a.systemdUnits, favorite: a.favorite, category: a.category, desktop: a.desktop,
+  } as Partial<ServiceApp>
+}
+
 export function useAppMutations() {
   const qc = useQueryClient()
   const refresh = () => qc.invalidateQueries({ queryKey: keys.apps })
   const onError = (e: unknown) => toast.error(errorMessage(e))
   return {
-    create: useMutation({ mutationFn: (a: Partial<ServiceApp>) => api.post<ServiceApp>("/api/apps", a), onSuccess: refresh, onError }),
+    create: useMutation({ mutationFn: (a: Partial<ServiceApp>) => api.post<ServiceApp>("/api/apps", appPayload(a)), onSuccess: refresh, onError }),
     update: useMutation({
-      mutationFn: (a: Partial<ServiceApp> & { id: string }) => api.put<ServiceApp>(`/api/apps/${a.id}`, a),
+      mutationFn: (a: Partial<ServiceApp> & { id: string }) => api.put<ServiceApp>(`/api/apps/${a.id}`, appPayload(a)),
       onSuccess: refresh, onError,
+    }),
+    move: useMutation({
+      mutationFn: (v: { id: string; x: number; y: number }) => api.put(`/api/apps/${v.id}/position`, { x: v.x, y: v.y }),
+      onError,
     }),
     remove: useMutation({ mutationFn: (id: string) => api.del(`/api/apps/${id}`), onSuccess: refresh, onError }),
     action: useMutation({

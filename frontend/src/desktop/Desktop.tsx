@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { AboutDialog } from "@/desktop/AboutDialog"
+import { DesktopIcons } from "@/desktop/DesktopIcons"
 import { Dock } from "@/desktop/Dock"
 import { MenuBar } from "@/desktop/MenuBar"
 import { Spotlight } from "@/desktop/Spotlight"
@@ -62,6 +63,7 @@ export function Desktop({ onLock }: { onLock: () => void }) {
         </ContextMenuContent>
       </ContextMenu>
 
+      <DesktopIcons />
       <WidgetLayer />
       <WindowLayer />
       <MenuBar onLock={onLock} onAbout={() => setAboutOpen(true)} />

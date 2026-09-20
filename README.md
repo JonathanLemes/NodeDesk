@@ -18,7 +18,7 @@
 |---|---|
 | **Desktop shell** | Wallpaper, menu bar, dock with magnification, draggable / resizable windows, light and dark mode, `Ctrl/⌘ K` launcher. |
 | **Widgets** | *System* (CPU / RAM / GPU), *Storage* (mounts and usage), *Services* (your apps and their state). Arrange them freely; the layout is saved. Adding your own is a matter of dropping a folder in ([guide](docs/widgets.md)). |
-| **Apps** | A first-class notion of “app”: a Docker container, a systemd service, an external URL or a manual entry, shown as an application. Discover running containers with one click. |
+| **Apps** | A first-class notion of “app”: a Docker container, a systemd service, an external URL or a manual entry, shown as an application. Discover running containers with one click, pin any app to the dock or as a draggable desktop icon that opens it in a new tab. |
 | **Files** | A Finder-style explorer: grid / list, preview pane, context menus, drag & drop, upload (files and folders), download (zip for folders), rename, copy, move, trash, search, properties, and a built-in editor (CodeMirror 6) with Markdown, JSON / YAML, code, image, audio, video and PDF preview. Only folders you authorise are reachable. |
 | **Docker** | Containers (state, ports, mounts, CPU / RAM, live logs, start / stop / restart) and images, through the Docker Engine SDK. No CLI, no shell. |
 | **Storage** | Disks, partitions, mounts, filesystems, temperatures, live I/O, optional SMART, and an on-demand, cached “what is using my space” analysis. |

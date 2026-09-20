@@ -1,7 +1,7 @@
 import { LayoutGrid, Plus, Search } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
-import { AppForm, emptyDraft } from "@/apps/apps/AppForm"
+import { AppForm, emptyDraft, type Draft } from "@/apps/apps/AppForm"
 import type { DesktopAppProps } from "@/apps/sdk"
 import { AppIcon } from "@/components/AppIcon"
 import { STATUS_LABEL, StatusDot } from "@/components/StatusDot"
@@ -15,7 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { resolveUrl } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useAppMutations, useApps, useDiscover } from "@/services/queries"
-import type { AppCandidate, ServiceApp, ServiceAppView } from "@/types/api"
+import type { AppCandidate, ServiceAppView } from "@/types/api"
 import { WindowToolbar } from "@/windows/context"
 
 export default function AppsApp({ props }: DesktopAppProps) {
@@ -23,7 +23,7 @@ export default function AppsApp({ props }: DesktopAppProps) {
   const { create, remove, action, update } = useAppMutations()
   const [tab, setTab] = useState<"mine" | "discover">(props.tab === "discover" ? "discover" : "mine")
   const [query, setQuery] = useState("")
-  const [draft, setDraft] = useState<(Omit<ServiceApp, "id" | "order"> & { id?: string }) | null>(null)
+  const [draft, setDraft] = useState<Draft | null>(null)
   const [removing, setRemoving] = useState<ServiceAppView | null>(null)
   const [showStopped, setShowStopped] = useState(false)
   const { data: discovered } = useDiscover(tab === "discover")
@@ -45,7 +45,7 @@ export default function AppsApp({ props }: DesktopAppProps) {
   const controllable = (a: ServiceAppView) => a.containers.length > 0 || a.systemdUnits.length > 0
 
   const addCandidate = (c: AppCandidate) =>
-    create.mutate({ name: prettify(c.name), type: "docker", containers: [c.name], url: c.url, icon: c.icon ?? "", category: c.category ?? c.project ?? "", favorite: false })
+    create.mutate({ name: prettify(c.name), type: "docker", containers: [c.name], url: c.url, icon: c.icon ?? "", category: c.category ?? c.project ?? "", favorite: false, desktop: false, desktopX: -1, desktopY: -1 })
   const addAll = () => candidates.forEach(addCandidate)
 
   return (
@@ -111,6 +111,7 @@ export default function AppsApp({ props }: DesktopAppProps) {
                           </>
                         )}
                         <ContextMenuItem onSelect={() => update.mutate({ ...a, favorite: !a.favorite })}>{a.favorite ? "Remove from Dock" : "Keep in Dock"}</ContextMenuItem>
+                        <ContextMenuItem onSelect={() => update.mutate({ ...a, desktop: !a.desktop })}>{a.desktop ? "Remove from Desktop" : "Add to Desktop"}</ContextMenuItem>
                         <ContextMenuItem onSelect={() => setDraft(a)}>Edit…</ContextMenuItem>
                         <ContextMenuSeparator />
                         <ContextMenuItem variant="destructive" onSelect={() => setRemoving(a)}>Remove…</ContextMenuItem>

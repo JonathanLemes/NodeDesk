@@ -53,6 +53,20 @@ func (s *Server) appRoutes(r chi.Router) {
 		httpx.NoContent(w)
 		return nil
 	}))
+	r.Put("/{id}/position", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
+		var in struct {
+			X int `json:"x"`
+			Y int `json:"y"`
+		}
+		if err := httpx.Decode(r, &in); err != nil {
+			return err
+		}
+		if err := s.Apps.Store.SetDesktopPosition(chi.URLParam(r, "id"), in.X, in.Y); err != nil {
+			return err
+		}
+		httpx.NoContent(w)
+		return nil
+	}))
 	r.Put("/{id}", httpx.Handler(func(w http.ResponseWriter, r *http.Request) error {
 		var in apps.App
 		if err := httpx.Decode(r, &in); err != nil {

@@ -62,6 +62,10 @@ export interface ServiceApp {
   favorite: boolean
   category: string
   order: number
+  /** Pinned to the desktop as an icon; desktopX/Y are pixels, -1 when not placed yet. */
+  desktop: boolean
+  desktopX: number
+  desktopY: number
 }
 
 export interface ServiceAppView extends ServiceApp {

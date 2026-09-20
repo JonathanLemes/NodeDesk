@@ -121,6 +121,7 @@ export function Dock() {
                   </>
                 )}
                 <ContextMenuSeparator />
+                <ContextMenuItem onSelect={() => update.mutate({ ...a, desktop: !a.desktop })}>{a.desktop ? "Remove from Desktop" : "Add to Desktop"}</ContextMenuItem>
                 <ContextMenuItem onSelect={() => update.mutate({ ...a, favorite: false })}>Remove from Dock</ContextMenuItem>
               </>
             }

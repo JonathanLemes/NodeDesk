@@ -34,22 +34,27 @@ type App struct {
 	Favorite     bool     `json:"favorite"`
 	Category     string   `json:"category"`
 	Order        int      `json:"order"`
+	// Desktop pins the app to the desktop as an icon; DesktopX/Y are its position (-1 = unplaced).
+	Desktop  bool `json:"desktop"`
+	DesktopX int  `json:"desktopX"`
+	DesktopY int  `json:"desktopY"`
 }
 
 type Store struct{ db *sql.DB }
 
 func NewStore(db *sql.DB) *Store { return &Store{db: db} }
 
-const cols = `id, name, icon, type, url, containers, systemd_units, favorite, category, sort_order`
+const cols = `id, name, icon, type, url, containers, systemd_units, favorite, category, sort_order, on_desktop, desktop_x, desktop_y`
 
 func scan(sc interface{ Scan(...any) error }) (App, error) {
 	var a App
 	var containers, units string
-	var fav int
-	if err := sc.Scan(&a.ID, &a.Name, &a.Icon, &a.Type, &a.URL, &containers, &units, &fav, &a.Category, &a.Order); err != nil {
+	var fav, desk int
+	if err := sc.Scan(&a.ID, &a.Name, &a.Icon, &a.Type, &a.URL, &containers, &units, &fav, &a.Category, &a.Order, &desk, &a.DesktopX, &a.DesktopY); err != nil {
 		return a, err
 	}
 	a.Favorite = fav == 1
+	a.Desktop = desk == 1
 	if json.Unmarshal([]byte(containers), &a.Containers) != nil || a.Containers == nil {
 		a.Containers = []string{}
 	}
@@ -92,8 +97,9 @@ func (s *Store) Create(a App) (App, error) {
 	var next int
 	s.db.QueryRow(`SELECT COALESCE(MAX(sort_order), 0) + 1 FROM apps`).Scan(&next)
 	a.Order = next
-	_, err := s.db.Exec(`INSERT INTO apps(`+cols+`) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-		a.ID, a.Name, a.Icon, a.Type, a.URL, mustJSON(a.Containers), mustJSON(a.SystemdUnits), b2i(a.Favorite), a.Category, a.Order)
+	a.DesktopX, a.DesktopY = -1, -1
+	_, err := s.db.Exec(`INSERT INTO apps(`+cols+`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		a.ID, a.Name, a.Icon, a.Type, a.URL, mustJSON(a.Containers), mustJSON(a.SystemdUnits), b2i(a.Favorite), a.Category, a.Order, b2i(a.Desktop), a.DesktopX, a.DesktopY)
 	return a, err
 }
 
@@ -103,12 +109,28 @@ func (s *Store) Update(id string, a App) (App, error) {
 		return a, err
 	}
 	a.ID, a.Order = cur.ID, cur.Order
+	a.DesktopX, a.DesktopY = cur.DesktopX, cur.DesktopY // position is changed via SetDesktopPosition
 	if err := a.normalize(); err != nil {
 		return a, err
 	}
-	_, err = s.db.Exec(`UPDATE apps SET name=?, icon=?, type=?, url=?, containers=?, systemd_units=?, favorite=?, category=? WHERE id=?`,
-		a.Name, a.Icon, a.Type, a.URL, mustJSON(a.Containers), mustJSON(a.SystemdUnits), b2i(a.Favorite), a.Category, id)
+	_, err = s.db.Exec(`UPDATE apps SET name=?, icon=?, type=?, url=?, containers=?, systemd_units=?, favorite=?, category=?, on_desktop=? WHERE id=?`,
+		a.Name, a.Icon, a.Type, a.URL, mustJSON(a.Containers), mustJSON(a.SystemdUnits), b2i(a.Favorite), a.Category, b2i(a.Desktop), id)
 	return a, err
+}
+
+// SetDesktopPosition stores where the app's desktop icon sits.
+func (s *Store) SetDesktopPosition(id string, x, y int) error {
+	if x < 0 || y < 0 || x > 20000 || y > 20000 {
+		return httpx.BadRequest("invalid position")
+	}
+	res, err := s.db.Exec(`UPDATE apps SET desktop_x = ?, desktop_y = ? WHERE id = ?`, x, y, id)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return httpx.NotFound("app not found")
+	}
+	return nil
 }
 
 func (s *Store) Delete(id string) error {
