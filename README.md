@@ -26,7 +26,7 @@
 
 ## Quick start
 
-Requirements: Go ≥ 1.25, Node ≥ 20, [pnpm](https://pnpm.io), a C compiler (only for NVIDIA GPU support; see below).
+Requirements: Go ≥ 1.26, Node ≥ 20, [pnpm](https://pnpm.io), a C compiler (only for NVIDIA GPU support; see below).
 
 ```bash
 make build                      # frontend + backend -> ./bin/nodedesk (single binary)

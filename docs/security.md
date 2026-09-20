@@ -14,7 +14,7 @@ Out of scope: a compromised admin session (it can do what the admin can do, with
 - Five failed sign-ins from one address lock it out for a minute.
 - First run: either `NODEDESK_ADMIN_PASSWORD`, or a one-time setup code printed in the server log. Nobody who merely finds the port open can claim the admin account.
 - Every state-changing request is checked for a same-origin `Origin` header (CSRF).
-- Sign-ins (success and failure), container / app actions, deletions, edits and configuration changes are written to an audit table (Settings → Activity).
+- Sign-ins (success and failure), container / app actions, deletions, edits and changes to apps and authorised folders are written to an audit table (Settings → Activity).
 
 ## No arbitrary execution
 
@@ -29,7 +29,7 @@ There is no `/exec` and no endpoint that accepts a command. Operations are typed
 Only folders you authorise (Settings → File Access) are reachable. `/` is not exposed by default; the default is your home directory.
 
 - Paths are cleaned and then resolved with Go's [`os.Root`](https://pkg.go.dev/os#Root), which refuses `..` and **symlinks that resolve outside the root at the syscall level**, so it is not a string check that a race or an odd encoding can defeat. Unit tests cover traversal and symlink escapes.
-- NodeDesk's own data directory can never be exposed (adding a folder that overlaps it is refused), so the database with password hashes is unreachable through Files.
+- NodeDesk’s own data directory is invisible and denied even when a parent folder is authorised (and a folder inside it cannot be added), so the database with password hashes is not reachable through Files. (A symlink you create inside an authorised folder that points at the data directory would bypass this check; do not do that.)
 - Roots can be **read-only**.
 - Uploads never overwrite (a free name is chosen); copy / move keep both files on conflict; text saves detect concurrent modification (HTTP 409).
 - Deleting moves items to a per-folder trash (`.nodedesk-trash`, hidden and unaddressable). Permanent deletion needs an explicit confirmation.

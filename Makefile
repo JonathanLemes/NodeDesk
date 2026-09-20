@@ -1,4 +1,4 @@
-# NodeDesk build helpers. Requires Go >= 1.25 and Node >= 20 with pnpm.
+# NodeDesk build helpers. Requires Go >= 1.26 and Node >= 20 with pnpm.
 GO      ?= go
 PNPM    ?= pnpm
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)

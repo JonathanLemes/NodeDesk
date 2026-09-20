@@ -109,18 +109,33 @@ func TestProtectedDirectoryIsHidden(t *testing.T) {
 	db, _ := database.Open(filepath.Join(t.TempDir(), "data"))
 	defer db.Close()
 	root := t.TempDir()
-	write(t, filepath.Join(root, "nodedesk-data", "nodedesk.db"), "sqlite")
+	data := filepath.Join(root, "nodedesk-data")
+	write(t, filepath.Join(data, "nodedesk.db"), "sqlite")
 	write(t, filepath.Join(root, "ok.txt"), "ok")
-	m := NewManager(db, filepath.Join(root, "nodedesk-data"))
-	// The root that contains the data dir is refused outright...
-	if _, err := m.AddRoot("all", root, false); err == nil {
-		t.Fatal("a root overlapping the data dir must be rejected")
-	}
-	// ...and a sibling root works normally.
-	sub := filepath.Join(root, "sub")
-	write(t, filepath.Join(sub, "f.txt"), "f")
-	if _, err := m.AddRoot("sub", sub, false); err != nil {
+	m := NewManager(db, data)
+
+	// A root that contains the data dir is allowed, but the data dir is invisible and denied.
+	if _, err := m.AddRoot("all", root, false); err != nil {
 		t.Fatal(err)
+	}
+	l, err := m.List("all", "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range l.Entries {
+		if e.Name == "nodedesk-data" {
+			t.Fatal("data dir is listed")
+		}
+	}
+	if _, err := m.ReadText("all", "/nodedesk-data/nodedesk.db"); err == nil {
+		t.Fatal("database readable through a parent root")
+	}
+	if _, err := m.List("all", "/nodedesk-data"); err == nil {
+		t.Fatal("data dir listable through a parent root")
+	}
+	// A root inside the data dir is refused.
+	if _, err := m.AddRoot("inside", data, false); err == nil {
+		t.Fatal("a root inside the data dir must be rejected")
 	}
 }
 

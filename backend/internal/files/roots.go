@@ -99,9 +99,11 @@ func (m *Manager) AddRoot(name, path string, readOnly bool) (Root, error) {
 	if st, err := os.Stat(real); err != nil || !st.IsDir() {
 		return Root{}, httpx.BadRequest("%s is not a directory", path)
 	}
+	// A root that contains the data dir is fine (the data dir is hidden and denied
+	// inside it); a root *inside* the data dir would expose the database itself.
 	for _, p := range m.protected {
-		if within(real, p) || within(p, real) {
-			return Root{}, httpx.BadRequest("that directory overlaps NodeDesk's own data and cannot be exposed")
+		if within(real, p) {
+			return Root{}, httpx.BadRequest("that directory is part of NodeDesk's own data and cannot be exposed")
 		}
 	}
 	var n int

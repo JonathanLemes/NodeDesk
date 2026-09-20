@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Go ≥ 1.25 · Node ≥ 20 · pnpm · a C compiler (for NVIDIA/NVML; without cgo the build still works and simply reports no NVIDIA GPU) · Docker (optional, for the Docker features).
+Go ≥ 1.26 · Node ≥ 20 · pnpm · a C compiler (for NVIDIA/NVML; without cgo the build still works and simply reports no NVIDIA GPU) · Docker (optional, for the Docker features).
 
 ## Run it
 
