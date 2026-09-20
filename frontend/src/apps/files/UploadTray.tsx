@@ -1,4 +1,5 @@
 import { Check, CircleAlert, Loader2, X } from "lucide-react"
+import { useEffect } from "react"
 
 import { Meter } from "@/components/Meter"
 import { formatBytes } from "@/lib/format"
@@ -7,6 +8,15 @@ import { useUploads } from "@/apps/files/uploads"
 export function UploadTray() {
   const items = useUploads((s) => s.items)
   const clear = useUploads((s) => s.clearFinished)
+
+  // Successful batches dismiss themselves; failures stay until closed.
+  const settled = items.length > 0 && items.every((i) => i.status === "done")
+  useEffect(() => {
+    if (!settled) return
+    const t = window.setTimeout(clear, 3500)
+    return () => window.clearTimeout(t)
+  }, [settled, clear])
+
   if (items.length === 0) return null
 
   const total = items.reduce((n, i) => n + i.size, 0)
