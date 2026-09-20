@@ -1,0 +1,23 @@
+[Unit]
+Description=NodeDesk (desktop UI for your home server)
+Documentation=https://github.com/JonathanLemes/NodeDesk
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+# Run as the user whose files and Docker access NodeDesk should use.
+User=@USER@
+EnvironmentFile=-/etc/nodedesk/nodedesk.env
+ExecStart=/usr/local/bin/nodedesk
+Restart=on-failure
+RestartSec=3
+# Hardening that does not get in the way of the file manager or Docker.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

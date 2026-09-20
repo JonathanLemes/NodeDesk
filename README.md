@@ -42,6 +42,7 @@ The binary contains the whole UI (`go:embed`). At runtime it needs nothing but i
 ## Documentation
 
 - [Architecture](docs/architecture.md): how the pieces fit, and why.
+- [Deployment](docs/deployment.md): run it as a systemd service.
 - [Configuration](docs/configuration.md): environment variables and in-app settings.
 - [Security](docs/security.md): threat model, sandboxing of files, what is deliberately *not* there.
 - [Development](docs/development.md): dev setup, project layout, tests.
