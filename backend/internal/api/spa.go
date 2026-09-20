@@ -26,6 +26,9 @@ func (s *Server) spa() http.Handler {
 			r.URL.Path = "/"
 			p = "index.html"
 		}
+		if strings.HasSuffix(p, ".webmanifest") {
+			w.Header().Set("Content-Type", "application/manifest+json")
+		}
 		if strings.HasPrefix(p, "assets/") {
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		} else {
