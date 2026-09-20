@@ -27,7 +27,7 @@ function DockItem({ label, icon, active, running, onClick, menu }: DockItemProps
     <button
       onClick={onClick}
       data-dock-item
-      className="group/dock flex w-[84px] shrink-0 origin-bottom flex-col items-center gap-1 outline-none"
+      className="group/dock flex min-w-[76px] max-w-[112px] shrink-0 px-1 origin-bottom flex-col items-center gap-1 outline-none"
       style={{ transform: "scale(var(--dock-scale, 1))", transition: "transform 0.14s ease-out" }}
     >
       <div className="rounded-[14px] transition-transform duration-150 group-active/dock:scale-95 group-focus-visible/dock:ring-2 group-focus-visible/dock:ring-primary" style={{ filter: "drop-shadow(0 2px 4px oklch(0.2 0.03 265 / 0.3))" }}>
