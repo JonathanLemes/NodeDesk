@@ -80,3 +80,11 @@ export function SettingsIcon({ size }: { size: number }) {
     </IconTile>
   )
 }
+
+export function TerminalIcon({ size }: { size: number }) {
+  return (
+    <IconTile size={size} background="linear-gradient(160deg, #3d3d42, #0e0e10)">
+      <span className="font-mono leading-none font-bold text-white" style={{ fontSize: size * 0.34, letterSpacing: -size * 0.01 }}>&gt;_</span>
+    </IconTile>
+  )
+}

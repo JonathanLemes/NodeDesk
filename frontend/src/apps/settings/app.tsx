@@ -13,5 +13,5 @@ export default defineDesktopApp({
   component: lazy(() => import("./SettingsApp")),
   defaultSize: { w: 760, h: 520 },
   minSize: { w: 520, h: 360 },
-  dockOrder: 5,
+  dockOrder: 6,
 })
