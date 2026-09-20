@@ -52,13 +52,13 @@ export default function AppsApp({ props }: DesktopAppProps) {
   return (
     <div className="flex h-full flex-col">
       <WindowToolbar>
-        <LayoutGrid className="size-5 text-muted-foreground" />
+        <LayoutGrid className="size-5 text-muted-foreground max-md:hidden" />
         <ToggleGroup type="single" value={tab} onValueChange={(v) => v && setTab(v as typeof tab)} size="sm" variant="outline">
           <ToggleGroupItem value="mine" className="px-3">{t("apps.my_apps")}</ToggleGroupItem>
           <ToggleGroupItem value="discover" className="px-3">{t("apps.discover")}</ToggleGroupItem>
         </ToggleGroup>
         <div className="flex-1" />
-        <div className="relative w-56">
+        <div className="relative w-56 max-md:w-24">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("common.search")} className="h-8 bg-muted/50 pl-8 text-[13px]" />
         </div>

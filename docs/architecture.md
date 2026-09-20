@@ -49,6 +49,10 @@ frontend/src/
 docs/  examples/
 ```
 
+## Desktop and phone shells
+
+`App.tsx` picks a shell from the viewport (`useIsMobile`, < 768 px): `desktop/Desktop` (menu bar, dock, windows, widgets) or `mobile/MobileShell` (home screen + full-screen pages). Both drive the same window store and the same apps: on a phone a "window" is rendered by `MobileFrame` (back button, toolbar in the header) instead of `WindowFrame`. Apps adapt with Tailwind `max-md:` variants (sidebars become drawers or tab strips, detail panes become full-screen overlays), and widgets switch to a compact layout below `COMPACT_WIDTH`. The phone home always shows the built-in System / Storage / Services widgets in the reference layout; per-widget arrangement is a desktop feature.
+
 ## Decisions worth knowing
 
 **One process, one file.** `go:embed` ships the UI; SQLite is pure Go (`modernc.org/sqlite`), so the build has no runtime dependency. The only cgo piece is NVIDIA support (`go-nvml`, which `dlopen`s the driver at runtime). Building with `CGO_ENABLED=0` drops NVIDIA GPU metrics and nothing else.

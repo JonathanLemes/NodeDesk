@@ -3,7 +3,7 @@ import { Database, HardDrive } from "lucide-react"
 import { Meter } from "@/components/Meter"
 import { useStorage } from "@/services/queries"
 import { launch } from "@/windows/launch"
-import { defineWidget, type WidgetProps } from "@/widgets/sdk"
+import { COMPACT_WIDTH, defineWidget, type WidgetProps } from "@/widgets/sdk"
 import { WidgetPanel } from "@/widgets/WidgetPanel"
 import { formatCapacity } from "@/lib/format"
 import { t } from "@/i18n"
@@ -24,16 +24,27 @@ function Storage({ settings, size }: WidgetProps) {
     .filter((m) => !m.mountpoint.startsWith("/boot"))
     .sort((a, b) => (a.mountpoint === "/" ? -1 : b.mountpoint === "/" ? 1 : b.total - a.total))
     .slice(0, count)
-  const rowH = 58
-  const fit = Math.max(1, Math.floor((size.h - 66) / rowH))
+  const compact = size.w < COMPACT_WIDTH
+  const rowH = compact ? 46 : 58
+  const fit = Math.max(1, Math.floor((size.h - (compact ? 44 : 66)) / rowH))
 
   return (
-    <WidgetPanel icon={Database} title={t("widget.storage.name")} onOpen={() => launch("storage")}>
+    <WidgetPanel compact={compact} icon={Database} title={t("widget.storage.name")} onOpen={() => launch("storage")}>
       {mounts.length === 0 ? (
         <p className="pt-6 text-center text-[13px] text-muted-foreground">{data ? t("widget.storage.none") : t("common.loading")}</p>
       ) : (
-        <ul className="flex flex-col gap-3.5">
+        <ul className={compact ? "flex flex-col gap-2" : "flex flex-col gap-3.5"}>
           {mounts.slice(0, Math.max(fit, 1)).map((m, i) => (
+            compact ? (
+              <li key={m.mountpoint}>
+                <p className="truncate text-[12.5px] font-medium">{m.mountpoint === "/" && m.name === "System" ? t("storage.system") : m.name}</p>
+                <div className="flex items-baseline justify-between text-[10.5px] text-muted-foreground tabular-nums">
+                  <span className="truncate">{formatCapacity(m.used)} / {formatCapacity(m.total)}</span>
+                  <span className="ml-1 shrink-0 text-foreground/80">{Math.round(m.percent)}%</span>
+                </div>
+                <Meter value={m.percent} color={BAR_COLORS[i % BAR_COLORS.length]} className="mt-1" height={4} />
+              </li>
+            ) : (
             <li key={m.mountpoint} className="flex items-center gap-3">
               <HardDrive className="size-9 shrink-0 text-foreground/55" strokeWidth={1.2} />
               <div className="min-w-0 flex-1">
@@ -48,6 +59,7 @@ function Storage({ settings, size }: WidgetProps) {
               </div>
               <span className="w-10 shrink-0 text-right text-[14px] text-foreground/80 tabular-nums">{Math.round(m.percent)}%</span>
             </li>
+            )
           ))}
         </ul>
       )}

@@ -233,3 +233,8 @@
 .prose-nd th, .prose-nd td { border: 1px solid var(--border); padding: 0.35em 0.75em; }
 .prose-nd img { max-width: 100%; border-radius: 8px; }
 .prose-nd hr { border: 0; border-top: 1px solid var(--border); margin: 1.5em 0; }
+
+@keyframes slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}

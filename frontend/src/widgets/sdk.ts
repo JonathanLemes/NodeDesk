@@ -3,6 +3,9 @@ import type { ComponentType } from "react"
 
 export interface Size { w: number; h: number }
 
+/** Widgets narrower than this render their compact layout (phones). */
+export const COMPACT_WIDTH = 260
+
 export interface WidgetProps {
   instanceId: string
   size: Size

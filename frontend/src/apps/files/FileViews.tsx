@@ -71,7 +71,7 @@ function useDropTarget(onDropOn: ViewProps["onDropOn"]) {
 export function GridView(p: ViewProps) {
   const { over, bind } = useDropTarget(p.onDropOn)
   return (
-    <div className="grid content-start gap-x-2 gap-y-3 p-5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))" }} data-files-grid>
+    <div className="grid content-start gap-x-2 gap-y-3 p-5 max-md:[--file-col:92px] max-md:p-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(var(--file-col, 112px), 1fr))" }} data-files-grid>
       {p.entries.map((e) => {
         const selected = p.selection.has(e.path)
         const renaming = p.renaming === e.path
@@ -123,12 +123,12 @@ export function ListView(p: ListViewProps) {
     </button>
   )
   return (
-    <div className="min-w-[520px] text-[13px]">
+    <div className="min-w-[520px] text-[13px] max-md:min-w-0">
       <div className="sticky top-0 z-[1] flex items-center gap-3 border-b border-border/70 bg-background/95 px-5 py-1.5 text-[11.5px] font-medium text-muted-foreground backdrop-blur">
         {head("name", t("files.col_name"), "flex-1")}
-        {head("modTime", t("files.col_modified"), "w-36")}
+        {head("modTime", t("files.col_modified"), "w-36 max-md:hidden")}
         {head("size", t("files.col_size"), "w-20 justify-end")}
-        {head("kind", t("files.col_kind"), "w-32")}
+        {head("kind", t("files.col_kind"), "w-32 max-md:hidden")}
       </div>
       <div className="p-2">
         {p.entries.map((e) => {
@@ -160,9 +160,9 @@ export function ListView(p: ListViewProps) {
                 )}
                 {p.showPath && <span className={cn("truncate text-xs", selected ? "text-primary-foreground/70" : "text-muted-foreground")}>{parentOf(e.path)}</span>}
               </div>
-              <span className={cn("w-36 shrink-0 text-xs", selected ? "text-primary-foreground/80" : "text-muted-foreground")}>{formatDate(e.modTime, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+              <span className={cn("w-36 shrink-0 text-xs max-md:hidden", selected ? "text-primary-foreground/80" : "text-muted-foreground")}>{formatDate(e.modTime, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</span>
               <span className={cn("w-20 shrink-0 text-right text-xs tabular-nums", selected ? "text-primary-foreground/80" : "text-muted-foreground")}>{e.isDir ? "—" : formatBytes(e.size)}</span>
-              <span className={cn("w-32 shrink-0 truncate text-xs", selected ? "text-primary-foreground/80" : "text-muted-foreground")}>{describeKind(e.name, e.kind)}</span>
+              <span className={cn("w-32 shrink-0 truncate text-xs max-md:hidden", selected ? "text-primary-foreground/80" : "text-muted-foreground")}>{describeKind(e.name, e.kind)}</span>
             </div>
           )
         })}

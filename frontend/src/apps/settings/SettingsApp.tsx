@@ -46,8 +46,8 @@ function Group({ title, children, description }: { title: string; description?: 
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-6 py-2 first:pt-0 last:pb-0">
-      <div className="min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-2 first:pt-0 last:pb-0">
+      <div className="min-w-0 flex-1 basis-40">
         <p className="text-[13.5px]">{label}</p>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </div>
@@ -106,7 +106,7 @@ function Desktop() {
   return (
     <>
       <Group title={t("settings.wallpaper")}>
-        <div className="grid grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-5 gap-2.5 max-md:grid-cols-3">
           {WALLPAPERS.map((w) => (
             <button key={w.id} onClick={() => setWallpaper(`builtin:${w.id}`)} className="group text-center">
               <div className={cn("aspect-[16/10] rounded-lg ring-offset-2 ring-offset-background transition", wallpaper === `builtin:${w.id}` ? "ring-2 ring-primary" : "group-hover:ring-2 group-hover:ring-foreground/20")} style={{ background: w.preview }} />
@@ -160,7 +160,7 @@ function FileAccess() {
       </Group>
       <Group title={t("settings.add_folder")}>
         <FieldGroup>
-          <div className="grid grid-cols-[1fr_2fr] gap-3">
+          <div className="grid grid-cols-[1fr_2fr] gap-3 max-md:grid-cols-1">
             <Field><FieldLabel htmlFor="root-name">{t("common.name")}</FieldLabel><Input id="root-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("settings.root_name_ph")} className="h-8" /></Field>
             <Field><FieldLabel htmlFor="root-path">{t("settings.abs_path")}</FieldLabel><Input id="root-path" value={path} onChange={(e) => setPath(e.target.value)} placeholder="/mnt/media" className="h-8 font-mono" /></Field>
           </div>
@@ -266,15 +266,15 @@ export default function SettingsApp({ props }: DesktopAppProps) {
   }, [props.section])
 
   return (
-    <div className="flex h-full">
-      <nav className="w-[210px] shrink-0 border-r border-border/70 bg-sidebar p-2.5">
+    <div className="flex h-full max-md:flex-col">
+      <nav className="w-[210px] shrink-0 border-r border-border/70 bg-sidebar p-2.5 max-md:flex max-md:w-full max-md:overflow-x-auto max-md:border-r-0 max-md:border-b max-md:p-2">
         {SECTIONS.map((s) => (
-          <button key={s.id} onClick={() => setSection(s.id)} className={cn("mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-[7px] text-left text-[13.5px]", section === s.id ? "bg-primary text-primary-foreground" : "hover:bg-foreground/6")}>
+          <button key={s.id} onClick={() => setSection(s.id)} className={cn("mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-[7px] text-left text-[13.5px] max-md:mb-0 max-md:w-auto max-md:shrink-0 max-md:whitespace-nowrap", section === s.id ? "bg-primary text-primary-foreground" : "hover:bg-foreground/6")}>
             <s.icon className="size-[17px]" strokeWidth={1.7} />{s.label}
           </button>
         ))}
       </nav>
-      <main className="min-w-0 flex-1 overflow-y-auto p-6">
+      <main className="min-w-0 flex-1 overflow-y-auto p-6 max-md:p-4">
         <h2 className="mb-5 text-[20px] font-semibold tracking-tight">{SECTIONS.find((s) => s.id === section)?.label}</h2>
         {section === "general" && <General />}
         {section === "desktop" && <Desktop />}

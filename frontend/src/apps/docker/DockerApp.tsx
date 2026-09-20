@@ -1,4 +1,4 @@
-import { Container as ContainerIcon, Play, RefreshCw, RotateCw, Search, Square } from "lucide-react"
+import { ChevronLeft, Container as ContainerIcon, Play, RefreshCw, RotateCw, Search, Square } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { LogViewer } from "@/apps/docker/LogViewer"
@@ -70,14 +70,14 @@ export default function DockerApp(_: DesktopAppProps) {
           {status ? t("docker.summary", { running: status.running, total: status.total }) : ""}
         </span>
         <div className="flex-1" />
-        <div className="relative w-48">
+        <div className="relative w-48 max-md:w-28">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("docker.filter")} className="h-8 bg-muted/50 pl-8 text-[13px]" />
         </div>
         <Button variant="ghost" size="icon" aria-label={t("common.refresh")} onClick={() => refetch()}><RefreshCw className={cn(isFetching && "animate-spin")} /></Button>
       </WindowToolbar>
 
-      <TabsContent value="containers" className="m-0 flex min-h-0 flex-1">
+      <TabsContent value="containers" className="relative m-0 flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2 border-b border-border/70 px-4 py-2">
             <ToggleGroup type="single" value={filter} onValueChange={(v) => v && setFilter(v as Filter)} size="sm" variant="outline">
@@ -107,7 +107,7 @@ export default function DockerApp(_: DesktopAppProps) {
                   <div className={cn("hidden max-w-[180px] flex-wrap justify-end gap-1 md:flex", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
                     {c.ports.filter((p) => p.public).slice(0, 3).map((p) => <span key={portKey(p)} className="rounded bg-foreground/[0.06] px-1.5 py-0.5 font-mono text-[10.5px]">{portLabel(p)}</span>)}
                   </div>
-                  <div className={cn("w-24 shrink-0 text-right text-[11.5px] tabular-nums", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                  <div className={cn("w-24 shrink-0 text-right text-[11.5px] tabular-nums max-md:hidden", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
                     {running && st ? <><p>{st.cpu.toFixed(1)}% CPU</p><p>{formatBytes(st.memUsed)}</p></> : null}
                   </div>
                   <div className="flex w-[84px] shrink-0 justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
@@ -127,7 +127,8 @@ export default function DockerApp(_: DesktopAppProps) {
         </div>
 
         {selected && (
-          <aside className="flex w-[340px] shrink-0 flex-col border-l border-border/70 p-4">
+          <aside className="flex w-[340px] shrink-0 flex-col border-l border-border/70 p-4 max-md:absolute max-md:inset-0 max-md:z-10 max-md:w-full max-md:border-l-0 max-md:bg-background">
+            <Button variant="ghost" size="sm" className="mb-2 self-start md:hidden" onClick={() => setSelectedId(null)}><ChevronLeft data-icon="inline-start" />{t("common.back")}</Button>
             <h3 className="truncate text-[15px] font-semibold">{selected.name}</h3>
             <p className="truncate text-xs text-muted-foreground">{selected.image}</p>
             <dl className="mt-3 grid grid-cols-[4.5rem_1fr] gap-x-2 gap-y-1 text-[12.5px]">

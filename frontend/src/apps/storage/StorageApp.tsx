@@ -120,7 +120,7 @@ function AnalysisPanel({ id, onClose, onAnalyze }: { id: string; onClose: () => 
     </li>
   )
   return (
-    <aside className="flex w-[360px] shrink-0 flex-col border-l border-border/70 animate-[fade-in_0.15s]">
+    <aside className="flex w-[360px] shrink-0 flex-col border-l border-border/70 animate-[fade-in_0.15s] max-md:absolute max-md:inset-0 max-md:z-10 max-md:w-full max-md:border-l-0 max-md:bg-background">
       <div className="flex items-start gap-2 p-4 pb-2">
         <div className="min-w-0 flex-1">
           <h3 className="text-[14px] font-semibold">{t("storage.usage")}</h3>
@@ -173,7 +173,7 @@ export default function StorageApp(_: DesktopAppProps) {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="relative flex h-full">
       <WindowToolbar>
         <h2 className="text-[16px] font-semibold">{t("app.storage")}</h2>
         <div className="flex-1" />

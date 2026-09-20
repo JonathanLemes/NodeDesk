@@ -14,6 +14,7 @@
 
 | | |
 |---|---|
+| **Phone layout** | Below 768 px wide the desktop turns into an iOS-style home screen: compact widgets, a swipeable 4-column app grid and a dock. Apps open as full-screen pages (the back gesture closes them), long-press an icon for its menu. Add it to your home screen for a full-screen PWA. |
 | **Desktop shell** | Wallpaper, menu bar, dock with magnification, draggable / resizable windows, light and dark mode, English and Portuguese, `Ctrl/⌘ K` launcher. |
 | **Widgets** | *System* (CPU / RAM / GPU), *Storage* (mounts and usage), *Services* (your apps and their state). Arrange them freely; the layout is saved. Adding your own is a matter of dropping a folder in ([guide](docs/widgets.md)). |
 | **Apps** | A first-class notion of “app”: a Docker container, a systemd service, an external URL or a manual entry, shown as an application. Discover running containers with one click, pin any app to the dock or as a draggable desktop icon that opens it in a new tab. |

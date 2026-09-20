@@ -37,6 +37,7 @@ The backend tests cover the security-critical parts: the file sandbox (traversal
 
 - **Backend:** one package per domain under `internal/`, handlers only in `internal/api`. Return `*httpx.Error` for expected failures (they become JSON with the right status); everything else is a 500 without details. No shelling out.
 - **Frontend:** server state in TanStack Query (`services/queries.ts`), UI state in small Zustand stores (`stores/`), never both for the same thing. Use shadcn/ui components and semantic tokens (`bg-primary`, `text-muted-foreground`); the glass / window look comes from the utilities in `index.css`.
+- **Phones:** test below 768 px (browser device mode). Use `max-md:` variants, never `window.innerWidth` checks, for layout differences; use `useIsMobile()` only for behaviour (e.g. tap opens instead of select).
 - **Theming:** all colours are CSS variables in `frontend/src/index.css`. Light/dark is a token swap.
 - Keep files small; prefer a new file over a 600-line one.
 - Commit messages follow Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`).

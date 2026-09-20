@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import {
-  ChevronLeft, ChevronRight, ChevronRight as Crumb, FilePlus, FolderPlus, LayoutGrid, List, PanelRight, Plus, Search, Upload, X,
+  ChevronLeft, ChevronRight, ChevronRight as Crumb, FilePlus, FolderPlus, LayoutGrid, List, PanelLeft, PanelRight, Plus, Search, Upload, X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -22,6 +22,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/
 import { Input } from "@/components/ui/input"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useAppMenus } from "@/hooks/useAppMenus"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSetting } from "@/hooks/useSetting"
 import { cn } from "@/lib/utils"
 import { ApiError } from "@/services/api"
@@ -50,6 +51,8 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const clipboard = useClipboard()
   const enqueue = useUploads((s) => s.enqueue)
   const { focused } = useWindowContext()
+  const isMobile = useIsMobile()
+  const [navOpen, setNavOpen] = useState(false)
 
   const [loc, setLoc] = useState<Location | null>(null)
   const [back, setBack] = useState<Location[]>([])
@@ -234,6 +237,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   // ------------------------------------------------------- selection & DnD
   const onSelect = (ev: MouseEvent, e: FileEntry) => {
     ev.stopPropagation()
+    if (isMobile) return openEntry(e) // on a phone a tap opens; long-press shows the menu
     if (ev.ctrlKey || ev.metaKey) {
       setSelection((s) => { const n = new Set(s); if (n.has(e.path)) n.delete(e.path); else n.add(e.path); return n })
       anchor.current = e.path
@@ -431,18 +435,19 @@ export default function FilesApp({ props }: DesktopAppProps) {
   )
 
   return (
-    <div className="flex h-full" data-focused={focused}>
+    <div className="relative flex h-full overflow-hidden" data-focused={focused}>
       <WindowToolbar>
+        <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("files.sidebar")} onClick={() => setNavOpen(true)}><PanelLeft /></Button>
         <Button variant="ghost" size="icon" aria-label={t("common.back")} disabled={!back.length} onClick={goBack}><ChevronLeft /></Button>
-        <Button variant="ghost" size="icon" aria-label={t("common.forward")} disabled={!fwd.length} onClick={goForward}><ChevronRight /></Button>
+        <Button variant="ghost" size="icon" className="max-md:hidden" aria-label={t("common.forward")} disabled={!fwd.length} onClick={goForward}><ChevronRight /></Button>
         <h2 className="ml-2 min-w-0 truncate text-[16px] font-semibold">{title}</h2>
         <div className="flex-1" />
         <ToggleGroup type="single" value={view} onValueChange={(v) => { if (v) { setView(v as "grid" | "list"); lsSet(LS.view, v) } }} className="gap-0.5">
           <ToggleGroupItem value="grid" aria-label={t("files.icons")} size="sm"><LayoutGrid /></ToggleGroupItem>
           <ToggleGroupItem value="list" aria-label={t("files.list")} size="sm"><List /></ToggleGroupItem>
         </ToggleGroup>
-        <Button variant={showPreview ? "secondary" : "ghost"} size="icon-sm" aria-label={t("files.toggle_preview")} onClick={() => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") }}><PanelRight /></Button>
-        <div className="relative ml-1 w-[230px]">
+        <Button className="max-md:hidden" variant={showPreview ? "secondary" : "ghost"} size="icon-sm" aria-label={t("files.toggle_preview")} onClick={() => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") }}><PanelRight /></Button>
+        <div className="relative ml-1 w-[230px] max-md:w-28 max-md:focus-within:w-40">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("common.search")} disabled={!dir}
             onKeyDown={(e) => e.key === "Escape" && setQuery("")}
@@ -450,14 +455,17 @@ export default function FilesApp({ props }: DesktopAppProps) {
         </div>
       </WindowToolbar>
 
+      {isMobile && navOpen && <div className="absolute inset-0 z-20 bg-black/30" onClick={() => setNavOpen(false)} />}
+      <div className={isMobile ? cn("absolute inset-y-0 left-0 z-30 flex transition-transform duration-200", navOpen ? "translate-x-0" : "-translate-x-full") : "flex"}>
       <Sidebar
         roots={roots ?? []}
         favorites={favorites}
         location={loc}
-        onNavigate={(l) => go(l)}
+        onNavigate={(l) => { go(l); setNavOpen(false) }}
         onDropTo={handleDrop}
         onRemoveFavorite={(f) => setFavorites(favorites.filter((x) => !(x.root === f.root && x.path === f.path)))}
       />
+      </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {dir && (
@@ -489,7 +497,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         )}
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1">{body}</div>
-          {showPreview && dir && (
+          {showPreview && dir && !isMobile && (
             <PreviewPane
               root={dir.root} selected={selected} folderName={title} folderItems={entries.length}
               onOpen={openEntry} onDownload={download} menu={itemMenu(ddKit)}

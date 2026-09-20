@@ -77,7 +77,7 @@ export default function MonitorApp(_: DesktopAppProps) {
   const CurrentIcon = current.icon
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full max-md:flex-col">
       <WindowToolbar>
         <Activity className="size-5 text-muted-foreground" />
         <h2 className="text-[16px] font-semibold">{t("app.monitor")}</h2>
@@ -89,12 +89,12 @@ export default function MonitorApp(_: DesktopAppProps) {
         </div>
       </WindowToolbar>
 
-      <nav className="w-[216px] shrink-0 overflow-y-auto border-r border-border/70 bg-sidebar p-2">
+      <nav className="w-[216px] shrink-0 overflow-y-auto border-r border-border/70 bg-sidebar p-2 max-md:flex max-md:w-full max-md:overflow-x-auto max-md:overflow-y-hidden max-md:border-r-0 max-md:border-b">
         {NAV.map((n) => {
           const s = seriesFor(n.id, history)[0]
           const active = n.id === section
           return (
-            <button key={n.id} onClick={() => setSection(n.id)} className={cn("mb-1 flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left", active ? "bg-primary/12 ring-1 ring-primary/30" : "hover:bg-foreground/[0.05]")}>
+            <button key={n.id} onClick={() => setSection(n.id)} className={cn("mb-1 flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left max-md:mb-0 max-md:w-auto max-md:shrink-0", active ? "bg-primary/12 ring-1 ring-primary/30" : "hover:bg-foreground/[0.05]")}>
               <div className="w-[68px] shrink-0 overflow-hidden rounded border border-border/70 bg-background/60 p-0.5">
                 <Sparkline data={s.values} max={s.max} color={n.color} />
               </div>
