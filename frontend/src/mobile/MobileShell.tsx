@@ -1,5 +1,7 @@
 import { useEffect } from "react"
 
+
+import { useAppHeight } from "@/mobile/useAppHeight"
 import { HomeScreen } from "@/mobile/HomeScreen"
 import { MobileFrame } from "@/mobile/MobileFrame"
 import { Wallpaper } from "@/desktop/wallpapers"
@@ -10,6 +12,7 @@ import { useWindows } from "@/stores/windows"
 /** Phone layout: the home screen with apps opening as full-screen pages on top of it. */
 export function MobileShell() {
   useLiveStreams(true)
+  useAppHeight()
   const [wallpaper] = useSetting("wallpaper")
   const windows = useWindows((s) => s.windows).filter((w) => !w.minimized)
   const topId = windows.reduce<string | null>((best, w) => (best === null || w.z > (windows.find((x) => x.id === best)?.z ?? -1) ? w.id : best), null)
@@ -45,7 +48,7 @@ export function MobileShell() {
   }
 
   return (
-    <div className="fixed inset-0 overflow-hidden" data-windows={count}>
+    <div className="fixed top-0 left-0 w-full overflow-hidden" style={{ height: "var(--app-h, 100dvh)" }} data-windows={count}>
       <Wallpaper value={wallpaper} />
       <HomeScreen />
       {windows.map((w) => <MobileFrame key={w.id} win={w} top={w.id === topId} onBack={back} />)}

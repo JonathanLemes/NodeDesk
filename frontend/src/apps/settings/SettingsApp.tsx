@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { WALLPAPERS } from "@/desktop/wallpapers"
 import { useClock24, useSetting } from "@/hooks/useSetting"
+import { useHomeLayout } from "@/mobile/layout"
 import { useTheme } from "@/hooks/useTheme"
 import { formatBytes, formatDate, formatDuration } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -96,6 +97,7 @@ function General() {
 }
 
 function Desktop() {
+  const [, resetHome] = useHomeLayout()
   const [wallpaper, setWallpaper] = useSetting("wallpaper")
   const [size, setSize] = useSetting("dock.size")
   const [magnify, setMagnify] = useSetting("dock.magnify")
@@ -126,6 +128,11 @@ function Desktop() {
       <Group title={t("settings.dock")}>
         <Row label={t("settings.icon_size")}><Slider className="w-40" min={40} max={80} step={2} value={[dockDraft]} onValueChange={([v]) => setDockDraft(v)} onValueCommit={([v]) => setSize(v)} /></Row>
         <Row label={t("settings.magnification")} hint={t("settings.magnification_hint")}><Switch checked={magnify} onCheckedChange={setMagnify} /></Row>
+      </Group>
+      <Group title={t("settings.home_screen")}>
+        <Row label={t("settings.reset_home")} hint={t("settings.reset_home_hint")}>
+          <Button size="sm" variant="secondary" onClick={() => resetHome({ order: [], hidden: [] }, true)}>{t("settings.reset_home")}</Button>
+        </Row>
       </Group>
       <Group title={t("settings.widgets")}>
         <Row label={t("settings.watermark")}><Switch checked={watermark} onCheckedChange={setWatermark} /></Row>

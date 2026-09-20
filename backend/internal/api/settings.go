@@ -21,6 +21,7 @@ var settingValidators = map[string]func(json.RawMessage) bool{
 	"desktop.watermark": isBool,
 	"profile.name":      stringMax(40),
 	"language":          oneOf("auto", "en", "pt"),
+	"mobile.layout":     validHomeLayout,
 	"files.favorites":   validFavorites,
 }
 
@@ -112,6 +113,23 @@ func validFavorites(raw json.RawMessage) bool {
 	}
 	for _, f := range v {
 		if f.Root == "" || len(f.Root) > 40 || len(f.Path) > 1024 {
+			return false
+		}
+	}
+	return true
+}
+
+// Phone home-screen arrangement: {order: [cellKey...], hidden: [cellKey...]}.
+func validHomeLayout(raw json.RawMessage) bool {
+	var v struct {
+		Order  []string `json:"order"`
+		Hidden []string `json:"hidden"`
+	}
+	if json.Unmarshal(raw, &v) != nil || len(v.Order) > 300 || len(v.Hidden) > 300 {
+		return false
+	}
+	for _, k := range append(v.Order, v.Hidden...) {
+		if k == "" || len(k) > 80 {
 			return false
 		}
 	}

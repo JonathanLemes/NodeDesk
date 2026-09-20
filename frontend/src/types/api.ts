@@ -251,5 +251,7 @@ export type Settings = Partial<{
   "desktop.watermark": boolean
   "profile.name": string
   language: "auto" | "en" | "pt"
+  /** Phone home screen: keys of icons in display order, and the ones the user removed. */
+  "mobile.layout": { order: string[]; hidden: string[] }
   "files.favorites": FileRef[]
 }>

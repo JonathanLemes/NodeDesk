@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { resolveUrl } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { cellKey, useHomeLayout } from "@/mobile/layout"
 import { useAppMutations, useApps, useDiscover } from "@/services/queries"
 import type { AppCandidate, ServiceAppView } from "@/types/api"
 import { WindowToolbar } from "@/windows/context"
@@ -29,6 +30,7 @@ export default function AppsApp({ props }: DesktopAppProps) {
   const [showStopped, setShowStopped] = useState(false)
   const { data: discovered } = useDiscover(tab === "discover")
   const candidates = useMemo(() => (discovered ?? []).filter((c) => showStopped || c.state === "running"), [discovered, showStopped])
+  const [home, saveHome] = useHomeLayout()
   const selected = typeof props.select === "string" ? props.select : null
 
   useEffect(() => {
@@ -113,6 +115,9 @@ export default function AppsApp({ props }: DesktopAppProps) {
                         )}
                         <ContextMenuItem onSelect={() => update.mutate({ ...a, favorite: !a.favorite })}>{a.favorite ? t("app.remove_from_dock") : t("app.keep_in_dock")}</ContextMenuItem>
                         <ContextMenuItem onSelect={() => update.mutate({ ...a, desktop: !a.desktop })}>{a.desktop ? t("app.remove_from_desktop") : t("app.add_to_desktop")}</ContextMenuItem>
+                        {home.hidden.includes(cellKey.service(a.id)) && (
+                          <ContextMenuItem onSelect={() => saveHome({ ...home, hidden: home.hidden.filter((k) => k !== cellKey.service(a.id)) }, true)}>{t("mobile.add_to_home")}</ContextMenuItem>
+                        )}
                         <ContextMenuItem onSelect={() => setDraft(a)}>{t("common.edit_ellipsis")}</ContextMenuItem>
                         <ContextMenuSeparator />
                         <ContextMenuItem variant="destructive" onSelect={() => setRemoving(a)}>{t("common.remove_ellipsis")}</ContextMenuItem>

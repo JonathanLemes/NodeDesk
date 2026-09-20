@@ -238,3 +238,9 @@
   from { transform: translateY(24px); opacity: 0; }
   to { transform: none; opacity: 1; }
 }
+
+/* iOS-style "jiggle" while rearranging the phone home screen. */
+@keyframes jiggle {
+  from { transform: rotate(-1.6deg); }
+  to { transform: rotate(1.6deg); }
+}
