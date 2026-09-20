@@ -1,4 +1,4 @@
-import { Cast, Monitor, Moon, Search, Sun, Wifi } from "lucide-react"
+import { Eclipse, Monitor, Moon, Search, Sun, Wifi } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Logo } from "@/components/Logo"
@@ -59,7 +59,7 @@ function DisplayPopover() {
   const editing = useUi((s) => s.editingWidgets)
   return (
     <Popover>
-      <PopoverTrigger className="rounded-md p-1.5 hover:bg-foreground/8" aria-label="Display"><Cast className="size-[17px]" /></PopoverTrigger>
+      <PopoverTrigger className="rounded-md p-1.5 hover:bg-foreground/8" aria-label="Display"><Eclipse className="size-[17px]" /></PopoverTrigger>
       <PopoverContent align="end" className="w-60 gap-3 text-[13px]">
         <p className="font-semibold">Appearance</p>
         <ToggleGroup type="single" value={theme} onValueChange={(v) => v && setTheme(v as typeof theme)} variant="outline" className="w-full">
