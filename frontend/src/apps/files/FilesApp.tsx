@@ -24,12 +24,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useAppMenus } from "@/hooks/useAppMenus"
 import { useSetting } from "@/hooks/useSetting"
 import { cn } from "@/lib/utils"
+import { ApiError } from "@/services/api"
 import { errorMessage, filesApi, fileUrl, useListing, useRoots, useSearch } from "@/services/queries"
 import { useClipboard } from "@/stores/clipboard"
 import { useWindows } from "@/stores/windows"
 import type { FileEntry, FileRef } from "@/types/api"
 import { launch } from "@/windows/launch"
 import { useWindowContext, WindowToolbar } from "@/windows/context"
+import { t } from "@/i18n"
 
 const LS = { view: "nodedesk.files.view", preview: "nodedesk.files.preview", hidden: "nodedesk.files.hidden" }
 function lsGet(key: string, def: string): string {
@@ -138,7 +140,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const refsOf = (list: FileEntry[]): FileRef[] => list.map((e) => ({ root: root!, path: e.path }))
   const refresh = useCallback(() => qc.invalidateQueries({ queryKey: ["files"] }), [qc])
 
-  const title = loc?.kind === "trash" ? "Trash" : dir ? (dir.path === "/" ? (rootInfo?.name ?? "Files") : baseName(dir.path)) : "Files"
+  const title = loc?.kind === "trash" ? t("app.trash") : dir ? (dir.path === "/" ? (rootInfo?.name ?? t("app.files")) : baseName(dir.path)) : t("app.files")
 
   // ---------------------------------------------------------------- actions
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
@@ -174,7 +176,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const newFolder = () => run(async () => {
     if (!dir) return
     for (let i = 1; i < 50; i++) {
-      const name = i === 1 ? "New Folder" : `New Folder ${i}`
+      const name = i === 1 ? t("files.new_folder_name") : t("files.new_folder_name_n", { n: i })
       try {
         const e = await filesApi.mkdir(dir.root, dir.path, name)
         await refresh()
@@ -182,7 +184,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         setRenaming(e.path)
         return
       } catch (err) {
-        if (!(err instanceof Error) || !/exists/i.test(err.message)) throw err
+        if (!(err instanceof ApiError) || err.status !== 409) throw err
       }
     }
   })
@@ -190,7 +192,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const newFile = () => run(async () => {
     if (!dir) return
     for (let i = 1; i < 50; i++) {
-      const name = i === 1 ? "untitled.txt" : `untitled ${i}.txt`
+      const name = i === 1 ? t("files.new_file_name") : t("files.new_file_name_n", { n: i })
       try {
         const e = await filesApi.create(dir.root, dir.path, name)
         await refresh()
@@ -198,7 +200,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         setRenaming(e.path)
         return
       } catch (err) {
-        if (!(err instanceof Error) || !/exists/i.test(err.message)) throw err
+        if (!(err instanceof ApiError) || err.status !== 409) throw err
       }
     }
   })
@@ -208,7 +210,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
     if (name && root) run(() => filesApi.rename(root, e.path, name))
   }
 
-  const trash = (list: FileEntry[]) => root && list.length && run(() => filesApi.remove(refsOf(list)), `Moved ${list.length === 1 ? `“${list[0].name}”` : `${list.length} items`} to Trash`).then(() => setSelection(new Set()))
+  const trash = (list: FileEntry[]) => root && list.length && run(() => filesApi.remove(refsOf(list)), list.length === 1 ? t("files.moved_to_trash_one", { name: list[0].name }) : t("files.moved_to_trash_many", { count: list.length })).then(() => setSelection(new Set()))
   const deletePermanently = (list: FileEntry[]) => root && run(() => filesApi.remove(refsOf(list), true)).then(() => setSelection(new Set()))
 
   const copySel = (mode: "copy" | "cut") => selected.length && clipboard.set(refsOf(selected), mode)
@@ -263,7 +265,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
       if (target === "trash") return void run(() => filesApi.remove(items))
       if (items.some((i) => i.root === target.root && i.path === target.path)) return
       const copy = ev.altKey || ev.ctrlKey
-      return void run(() => (copy ? filesApi.copy : filesApi.move)(items, target), copy ? "Copied" : undefined)
+      return void run(() => (copy ? filesApi.copy : filesApi.move)(items, target), copy ? t("files.copied") : undefined)
     }
     if (target === "trash" || !ev.dataTransfer.types.includes("Files")) return
     const files = await collectDropped(ev.dataTransfer)
@@ -303,37 +305,37 @@ export default function FilesApp({ props }: DesktopAppProps) {
     const one = selected.length === 1 ? selected[0] : null
     return (
       <>
-        {one && <Item onSelect={() => openEntry(one)}>Open</Item>}
-        {one && !one.isDir && one.editable && <Item onSelect={() => openEntry(one)} disabled={readOnly}>Edit</Item>}
-        <Item onSelect={() => download(selected)}>Download{selected.length > 1 || one?.isDir ? " as zip" : ""}</Item>
+        {one && <Item onSelect={() => openEntry(one)}>{t("common.open")}</Item>}
+        {one && !one.isDir && one.editable && <Item onSelect={() => openEntry(one)} disabled={readOnly}>{t("common.edit")}</Item>}
+        <Item onSelect={() => download(selected)}>{selected.length > 1 || one?.isDir ? t("files.download_zip") : t("common.download")}</Item>
         <Sep />
-        <Item onSelect={() => copySel("copy")}>Copy</Item>
-        <Item onSelect={() => copySel("cut")} disabled={readOnly}>Cut</Item>
-        {one?.isDir && <Item onSelect={() => paste({ root: root!, path: one.path })} disabled={readOnly || clipboard.items.length === 0}>Paste into “{one.name}”</Item>}
-        {one && <Item onSelect={() => setRenaming(one.path)} disabled={readOnly}>Rename</Item>}
+        <Item onSelect={() => copySel("copy")}>{t("edit.copy")}</Item>
+        <Item onSelect={() => copySel("cut")} disabled={readOnly}>{t("edit.cut")}</Item>
+        {one?.isDir && <Item onSelect={() => paste({ root: root!, path: one.path })} disabled={readOnly || clipboard.items.length === 0}>{t("files.paste_into", { name: one.name })}</Item>}
+        {one && <Item onSelect={() => setRenaming(one.path)} disabled={readOnly}>{t("files.rename")}</Item>}
         <Sep />
-        {one?.isDir && <Item onSelect={() => favorite(one)}>Add to Favorites</Item>}
-        {one && <Item onSelect={() => root && setInfo({ root, path: one.path })}>Get Info</Item>}
+        {one?.isDir && <Item onSelect={() => favorite(one)}>{t("files.add_favorite")}</Item>}
+        {one && <Item onSelect={() => root && setInfo({ root, path: one.path })}>{t("files.get_info")}</Item>}
         <Sep />
-        <Item variant="destructive" disabled={readOnly} onSelect={() => trash(selected)}>Move to Trash</Item>
-        <Item variant="destructive" disabled={readOnly} onSelect={() => setConfirm(selected)}>Delete Permanently…</Item>
+        <Item variant="destructive" disabled={readOnly} onSelect={() => trash(selected)}>{t("files.move_to_trash")}</Item>
+        <Item variant="destructive" disabled={readOnly} onSelect={() => setConfirm(selected)}>{t("files.delete_permanently")}</Item>
       </>
     )
   }
 
   const blankMenu = ({ Item, Sep }: MenuKit): ReactNode => (
     <>
-      <Item onSelect={newFolder} disabled={readOnly}>New Folder</Item>
-      <Item onSelect={newFile} disabled={readOnly}>New File</Item>
-      <Item onSelect={() => fileInput.current?.click()} disabled={readOnly}>Upload Files…</Item>
-      <Item onSelect={() => folderInput.current?.click()} disabled={readOnly}>Upload Folder…</Item>
+      <Item onSelect={newFolder} disabled={readOnly}>{t("files.new_folder")}</Item>
+      <Item onSelect={newFile} disabled={readOnly}>{t("files.new_file")}</Item>
+      <Item onSelect={() => fileInput.current?.click()} disabled={readOnly}>{t("files.upload_files")}</Item>
+      <Item onSelect={() => folderInput.current?.click()} disabled={readOnly}>{t("files.upload_folder")}</Item>
       <Sep />
-      <Item onSelect={() => paste()} disabled={readOnly || clipboard.items.length === 0}>Paste</Item>
-      <Item onSelect={() => setSelection(new Set(entries.map((e) => e.path)))}>Select All</Item>
+      <Item onSelect={() => paste()} disabled={readOnly || clipboard.items.length === 0}>{t("edit.paste")}</Item>
+      <Item onSelect={() => setSelection(new Set(entries.map((e) => e.path)))}>{t("edit.select_all")}</Item>
       <Sep />
-      <Item onSelect={() => { const v = !showHidden; setShowHidden(v); lsSet(LS.hidden, v ? "1" : "0") }}>{showHidden ? "Hide" : "Show"} Hidden Files</Item>
-      <Item onSelect={refresh}>Refresh</Item>
-      <Item onSelect={() => dir && setInfo({ root: dir.root, path: dir.path })}>Get Info</Item>
+      <Item onSelect={() => { const v = !showHidden; setShowHidden(v); lsSet(LS.hidden, v ? "1" : "0") }}>{showHidden ? t("files.hide_hidden") : t("files.show_hidden")}</Item>
+      <Item onSelect={refresh}>{t("common.refresh")}</Item>
+      <Item onSelect={() => dir && setInfo({ root: dir.root, path: dir.path })}>{t("files.get_info")}</Item>
     </>
   )
 
@@ -342,30 +344,30 @@ export default function FilesApp({ props }: DesktopAppProps) {
 
   useAppMenus({
     File: [
-      { label: "New Folder", onSelect: newFolder, disabled: readOnly || !dir },
-      { label: "New File", onSelect: newFile, disabled: readOnly || !dir },
-      { label: "Upload Files…", onSelect: () => fileInput.current?.click(), disabled: readOnly || !dir },
-      { label: "Rename", onSelect: () => selected[0] && setRenaming(selected[0].path), disabled: readOnly || selected.length !== 1, separatorBefore: true },
-      { label: "Get Info", onSelect: () => root && selected[0] && setInfo({ root, path: selected[0].path }), disabled: selected.length !== 1 },
-      { label: "Move to Trash", shortcut: "Del", onSelect: () => trash(selected), disabled: readOnly || selected.length === 0, separatorBefore: true },
+      { label: t("files.new_folder"), onSelect: newFolder, disabled: readOnly || !dir },
+      { label: t("files.new_file"), onSelect: newFile, disabled: readOnly || !dir },
+      { label: t("files.upload_files"), onSelect: () => fileInput.current?.click(), disabled: readOnly || !dir },
+      { label: t("files.rename"), onSelect: () => selected[0] && setRenaming(selected[0].path), disabled: readOnly || selected.length !== 1, separatorBefore: true },
+      { label: t("files.get_info"), onSelect: () => root && selected[0] && setInfo({ root, path: selected[0].path }), disabled: selected.length !== 1 },
+      { label: t("files.move_to_trash"), shortcut: "Del", onSelect: () => trash(selected), disabled: readOnly || selected.length === 0, separatorBefore: true },
     ],
     Edit: [
-      { label: "Copy", shortcut: "Ctrl+C", onSelect: () => copySel("copy"), disabled: selected.length === 0 },
-      { label: "Cut", shortcut: "Ctrl+X", onSelect: () => copySel("cut"), disabled: readOnly || selected.length === 0 },
-      { label: "Paste", shortcut: "Ctrl+V", onSelect: () => paste(), disabled: readOnly || clipboard.items.length === 0 },
-      { label: "Select All", shortcut: "Ctrl+A", onSelect: () => setSelection(new Set(entries.map((e) => e.path))), separatorBefore: true },
+      { label: t("edit.copy"), shortcut: "Ctrl+C", onSelect: () => copySel("copy"), disabled: selected.length === 0 },
+      { label: t("edit.cut"), shortcut: "Ctrl+X", onSelect: () => copySel("cut"), disabled: readOnly || selected.length === 0 },
+      { label: t("edit.paste"), shortcut: "Ctrl+V", onSelect: () => paste(), disabled: readOnly || clipboard.items.length === 0 },
+      { label: t("edit.select_all"), shortcut: "Ctrl+A", onSelect: () => setSelection(new Set(entries.map((e) => e.path))), separatorBefore: true },
     ],
     View: [
-      { label: "as Icons", checked: view === "grid", onSelect: () => { setView("grid"); lsSet(LS.view, "grid") } },
-      { label: "as List", checked: view === "list", onSelect: () => { setView("list"); lsSet(LS.view, "list") } },
-      { label: showPreview ? "Hide Preview" : "Show Preview", onSelect: () => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") } },
-      { label: showHidden ? "Hide Hidden Files" : "Show Hidden Files", onSelect: () => { setShowHidden(!showHidden); lsSet(LS.hidden, showHidden ? "0" : "1") } },
+      { label: t("files.as_icons"), checked: view === "grid", onSelect: () => { setView("grid"); lsSet(LS.view, "grid") } },
+      { label: t("files.as_list"), checked: view === "list", onSelect: () => { setView("list"); lsSet(LS.view, "list") } },
+      { label: showPreview ? t("files.hide_preview") : t("files.show_preview"), onSelect: () => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") } },
+      { label: showHidden ? t("files.hide_hidden_long") : t("files.show_hidden_long"), onSelect: () => { setShowHidden(!showHidden); lsSet(LS.hidden, showHidden ? "0" : "1") } },
     ],
     Go: [
-      { label: "Back", onSelect: goBack, disabled: back.length === 0 },
-      { label: "Forward", onSelect: goForward, disabled: fwd.length === 0 },
-      { label: "Enclosing Folder", onSelect: () => dir && go({ ...dir, path: parentOf(dir.path) }), disabled: !dir || dir.path === "/" },
-      { label: "Trash", onSelect: () => go({ kind: "trash" }), separatorBefore: true },
+      { label: t("common.back"), onSelect: goBack, disabled: back.length === 0 },
+      { label: t("common.forward"), onSelect: goForward, disabled: fwd.length === 0 },
+      { label: t("files.enclosing"), onSelect: () => dir && go({ ...dir, path: parentOf(dir.path) }), disabled: !dir || dir.path === "/" },
+      { label: t("app.trash"), onSelect: () => go({ kind: "trash" }), separatorBefore: true },
     ],
   })
 
@@ -378,9 +380,9 @@ export default function FilesApp({ props }: DesktopAppProps) {
   ) : listing.isError && !searching ? (
     <Empty className="h-full"><EmptyHeader>
       <EmptyMedia variant="icon"><X /></EmptyMedia>
-      <EmptyTitle>Can’t open this folder</EmptyTitle>
+      <EmptyTitle>{t("files.cant_open")}</EmptyTitle>
       <EmptyDescription>{errorMessage(listing.error)}</EmptyDescription>
-    </EmptyHeader><Button size="sm" variant="secondary" onClick={() => listing.refetch()}>Try again</Button></Empty>
+    </EmptyHeader><Button size="sm" variant="secondary" onClick={() => listing.refetch()}>{t("common.try_again")}</Button></Empty>
   ) : (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -404,22 +406,22 @@ export default function FilesApp({ props }: DesktopAppProps) {
           {isFolderEmpty ? (
             <Empty className="h-full"><EmptyHeader>
               <EmptyMedia variant="icon"><FolderPlus /></EmptyMedia>
-              <EmptyTitle>This folder is empty</EmptyTitle>
-              <EmptyDescription>{readOnly ? "This location is read-only." : "Drop files here to upload them."}</EmptyDescription>
+              <EmptyTitle>{t("files.empty")}</EmptyTitle>
+              <EmptyDescription>{readOnly ? t("files.empty_readonly") : t("files.empty_drop")}</EmptyDescription>
             </EmptyHeader></Empty>
           ) : searching && !search.isFetching && entries.length === 0 ? (
             <Empty className="h-full"><EmptyHeader>
               <EmptyMedia variant="icon"><Search /></EmptyMedia>
-              <EmptyTitle>No results for “{debounced}”</EmptyTitle>
+              <EmptyTitle>{t("files.no_results_for", { q: debounced })}</EmptyTitle>
             </EmptyHeader></Empty>
           ) : root ? (
             showGrid ? (
               <GridView root={root} entries={entries} selection={selection} renaming={renaming} showPath={searching}
-                onSelect={onSelect} onOpen={openEntry} onRename={commitRename} onDragStart={onDragStart} onDropOn={(e, t) => handleDrop(e, { root, path: t.path })} />
+                onSelect={onSelect} onOpen={openEntry} onRename={commitRename} onDragStart={onDragStart} onDropOn={(e, target) => handleDrop(e, { root, path: target.path })} />
             ) : (
               <ListView root={root} entries={entries} selection={selection} renaming={renaming} showPath={searching}
                 sort={sort} onSort={(key: SortKey) => setSort((s) => ({ key, dir: s.key === key && s.dir === "asc" ? "desc" : "asc" }))}
-                onSelect={onSelect} onOpen={openEntry} onRename={commitRename} onDragStart={onDragStart} onDropOn={(e, t) => handleDrop(e, { root, path: t.path })} />
+                onSelect={onSelect} onOpen={openEntry} onRename={commitRename} onDragStart={onDragStart} onDropOn={(e, target) => handleDrop(e, { root, path: target.path })} />
             )
           ) : null}
         </div>
@@ -431,18 +433,18 @@ export default function FilesApp({ props }: DesktopAppProps) {
   return (
     <div className="flex h-full" data-focused={focused}>
       <WindowToolbar>
-        <Button variant="ghost" size="icon" aria-label="Back" disabled={!back.length} onClick={goBack}><ChevronLeft /></Button>
-        <Button variant="ghost" size="icon" aria-label="Forward" disabled={!fwd.length} onClick={goForward}><ChevronRight /></Button>
+        <Button variant="ghost" size="icon" aria-label={t("common.back")} disabled={!back.length} onClick={goBack}><ChevronLeft /></Button>
+        <Button variant="ghost" size="icon" aria-label={t("common.forward")} disabled={!fwd.length} onClick={goForward}><ChevronRight /></Button>
         <h2 className="ml-2 min-w-0 truncate text-[16px] font-semibold">{title}</h2>
         <div className="flex-1" />
         <ToggleGroup type="single" value={view} onValueChange={(v) => { if (v) { setView(v as "grid" | "list"); lsSet(LS.view, v) } }} className="gap-0.5">
-          <ToggleGroupItem value="grid" aria-label="Icons" size="sm"><LayoutGrid /></ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List" size="sm"><List /></ToggleGroupItem>
+          <ToggleGroupItem value="grid" aria-label={t("files.icons")} size="sm"><LayoutGrid /></ToggleGroupItem>
+          <ToggleGroupItem value="list" aria-label={t("files.list")} size="sm"><List /></ToggleGroupItem>
         </ToggleGroup>
-        <Button variant={showPreview ? "secondary" : "ghost"} size="icon-sm" aria-label="Toggle preview" onClick={() => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") }}><PanelRight /></Button>
+        <Button variant={showPreview ? "secondary" : "ghost"} size="icon-sm" aria-label={t("files.toggle_preview")} onClick={() => { setShowPreview(!showPreview); lsSet(LS.preview, showPreview ? "0" : "1") }}><PanelRight /></Button>
         <div className="relative ml-1 w-[230px]">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" disabled={!dir}
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("common.search")} disabled={!dir}
             onKeyDown={(e) => e.key === "Escape" && setQuery("")}
             className="h-8 rounded-lg border-border/80 bg-muted/50 pl-8 text-[13px]" />
         </div>
@@ -460,8 +462,8 @@ export default function FilesApp({ props }: DesktopAppProps) {
       <div className="flex min-w-0 flex-1 flex-col">
         {dir && (
           <div className="flex items-center border-b border-border/70 pr-3 pl-5">
-            <nav className="flex min-w-0 flex-1 items-center gap-0.5 py-2.5 text-[13px]" aria-label="Breadcrumb">
-              {[{ name: rootInfo?.name ?? "Files", path: "/" }, ...crumbsOf(dir.path)].map((c, i, all) => (
+            <nav className="flex min-w-0 flex-1 items-center gap-0.5 py-2.5 text-[13px]" aria-label={t("files.breadcrumb")}>
+              {[{ name: rootInfo?.name ?? t("app.files"), path: "/" }, ...crumbsOf(dir.path)].map((c, i, all) => (
                 <span key={c.path} className="flex items-center gap-0.5"
                   onDragOver={(e) => { if (e.dataTransfer.types.includes(DND_TYPE)) e.preventDefault() }}
                   onDrop={(e) => handleDrop(e, { root: dir.root, path: c.path })}>
@@ -473,13 +475,13 @@ export default function FilesApp({ props }: DesktopAppProps) {
             </nav>
             {!readOnly && (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button variant="ghost" size="sm"><Plus data-icon="inline-start" />New</Button></DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild><Button variant="ghost" size="sm"><Plus data-icon="inline-start" />{t("common.new")}</Button></DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-44" onCloseAutoFocus={(e) => e.preventDefault()}>
-                  <DropdownMenuItem onSelect={newFolder}><FolderPlus />New Folder</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={newFile}><FilePlus />New File</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={newFolder}><FolderPlus />{t("files.new_folder")}</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={newFile}><FilePlus />{t("files.new_file")}</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => fileInput.current?.click()}><Upload />Upload Files…</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => folderInput.current?.click()}><Upload />Upload Folder…</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => fileInput.current?.click()}><Upload />{t("files.upload_files")}</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => folderInput.current?.click()}><Upload />{t("files.upload_folder")}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -504,12 +506,12 @@ export default function FilesApp({ props }: DesktopAppProps) {
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {confirm?.length === 1 ? `“${confirm[0].name}”` : `${confirm?.length} items`} permanently?</AlertDialogTitle>
-            <AlertDialogDescription>This skips the Trash and cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>{confirm?.length === 1 ? t("files.delete_confirm_one", { name: confirm[0].name }) : t("files.delete_confirm_many", { count: confirm?.length ?? 0 })}</AlertDialogTitle>
+            <AlertDialogDescription>{t("files.delete_confirm_desc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => confirm && deletePermanently(confirm)}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => confirm && deletePermanently(confirm)}>{t("common.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

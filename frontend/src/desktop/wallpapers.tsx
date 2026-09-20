@@ -1,15 +1,26 @@
 import { useMemo } from "react"
 
 import { fileUrl } from "@/services/queries"
+import { t } from "@/i18n"
 
 export interface WallpaperDef { id: string; name: string; preview: string }
 
 export const WALLPAPERS: WallpaperDef[] = [
-  { id: "alpine", name: "Alpine", preview: "linear-gradient(180deg,#8fa9e6,#f2c4b8 55%,#3d5a80)" },
-  { id: "dusk", name: "Dusk", preview: "linear-gradient(160deg,#3a3f8f,#b45a9c 55%,#f7a072)" },
-  { id: "aurora", name: "Aurora", preview: "linear-gradient(160deg,#0f2a3f,#1f7a8c 50%,#7ee081)" },
-  { id: "mist", name: "Mist", preview: "linear-gradient(160deg,#dfe7f3,#c3d0e6 50%,#f1d9e6)" },
-  { id: "graphite", name: "Graphite", preview: "linear-gradient(160deg,#1c1f26,#2c3240 60%,#14171c)" },
+  { id: "alpine", get name() {
+      return t("wallpaper.alpine")
+    }, preview: "linear-gradient(180deg,#8fa9e6,#f2c4b8 55%,#3d5a80)" },
+  { id: "dusk", get name() {
+      return t("wallpaper.dusk")
+    }, preview: "linear-gradient(160deg,#3a3f8f,#b45a9c 55%,#f7a072)" },
+  { id: "aurora", get name() {
+      return t("wallpaper.aurora")
+    }, preview: "linear-gradient(160deg,#0f2a3f,#1f7a8c 50%,#7ee081)" },
+  { id: "mist", get name() {
+      return t("wallpaper.mist")
+    }, preview: "linear-gradient(160deg,#dfe7f3,#c3d0e6 50%,#f1d9e6)" },
+  { id: "graphite", get name() {
+      return t("wallpaper.graphite")
+    }, preview: "linear-gradient(160deg,#1c1f26,#2c3240 60%,#14171c)" },
 ]
 
 // mulberry32: tiny deterministic PRNG so the generated mountains are identical on every load.

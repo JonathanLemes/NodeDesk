@@ -2,10 +2,13 @@ import { lazy } from "react"
 
 import { MonitorIcon } from "@/apps/icons"
 import { defineDesktopApp } from "@/apps/sdk"
+import { t } from "@/i18n"
 
 export default defineDesktopApp({
   id: "monitor",
-  title: "Monitor",
+  get title() {
+    return t("app.monitor")
+  },
   icon: (size) => <MonitorIcon size={size} />,
   component: lazy(() => import("./MonitorApp")),
   defaultSize: { w: 860, h: 560 },

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { api } from "@/services/api"
+import { t } from "@/i18n"
 
 const MAX_LINES = 2000
 
@@ -47,11 +48,11 @@ export function LogViewer({ id, running }: { id: string; running: boolean }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-1 pb-2">
-        <span className="flex-1 text-xs text-muted-foreground">{lines.length} lines</span>
+        <span className="flex-1 text-xs text-muted-foreground">{t("logs.lines", { count: lines.length })}</span>
         {running && (
-          <Button size="xs" variant="ghost" onClick={() => setLive(!live)}>{live ? <Pause data-icon="inline-start" /> : <Play data-icon="inline-start" />}{live ? "Pause" : "Follow"}</Button>
+          <Button size="xs" variant="ghost" onClick={() => setLive(!live)}>{live ? <Pause data-icon="inline-start" /> : <Play data-icon="inline-start" />}{live ? t("logs.pause") : t("logs.follow")}</Button>
         )}
-        <Button size="xs" variant={stick ? "secondary" : "ghost"} onClick={() => setStick(!stick)}><ArrowDownToLine data-icon="inline-start" />Auto-scroll</Button>
+        <Button size="xs" variant={stick ? "secondary" : "ghost"} onClick={() => setStick(!stick)}><ArrowDownToLine data-icon="inline-start" />{t("logs.autoscroll")}</Button>
       </div>
       <pre
         ref={box}
@@ -62,7 +63,7 @@ export function LogViewer({ id, running }: { id: string; running: boolean }) {
         }}
         className="min-h-0 flex-1 overflow-auto rounded-lg bg-muted/60 p-3 font-mono text-[11.5px] leading-relaxed break-all whitespace-pre-wrap"
       >
-        {lines.length === 0 ? <span className="text-muted-foreground">No log output.</span> : lines.map((l, i) => <div key={i}>{l}</div>)}
+        {lines.length === 0 ? <span className="text-muted-foreground">{t("logs.none")}</span> : lines.map((l, i) => <div key={i}>{l}</div>)}
       </pre>
     </div>
   )

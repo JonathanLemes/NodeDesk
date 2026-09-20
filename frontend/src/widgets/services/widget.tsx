@@ -1,12 +1,13 @@
 import { Box } from "lucide-react"
 
 import { AppIcon } from "@/components/AppIcon"
-import { StatusDot, STATUS_LABEL } from "@/components/StatusDot"
+import { StatusDot, statusLabel } from "@/components/StatusDot"
 import { resolveUrl } from "@/lib/format"
 import { useApps } from "@/services/queries"
 import { launch } from "@/windows/launch"
 import { defineWidget, type WidgetProps } from "@/widgets/sdk"
 import { WidgetPanel } from "@/widgets/WidgetPanel"
+import { t } from "@/i18n"
 
 function Services({ settings, size }: WidgetProps) {
   const { data } = useApps()
@@ -21,13 +22,13 @@ function Services({ settings, size }: WidgetProps) {
     .slice(0, Math.min(count, fit))
 
   return (
-    <WidgetPanel icon={Box} title="Services" onOpen={() => launch("apps")}>
+    <WidgetPanel icon={Box} title={t("widget.services.name")} onOpen={() => launch("apps")}>
       {apps.length === 0 ? (
         <div className="flex flex-col items-center gap-2 pt-5 text-center text-[13px] text-muted-foreground">
-          {data ? "No apps yet" : "Loading…"}
+          {data ? t("widget.services.none") : t("common.loading")}
           {data && (
             <button onClick={() => launch("apps", { tab: "discover" })} className="text-primary hover:underline">
-              Add your services
+              {t("widget.services.add")}
             </button>
           )}
         </div>
@@ -44,7 +45,7 @@ function Services({ settings, size }: WidgetProps) {
                 <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{a.name}</span>
                 <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
                   <StatusDot status={a.status} />
-                  {STATUS_LABEL[a.status]}
+                  {statusLabel(a.status)}
                 </span>
               </button>
             </li>
@@ -57,8 +58,12 @@ function Services({ settings, size }: WidgetProps) {
 
 export default defineWidget({
   id: "services",
-  name: "Services",
-  description: "Your apps and whether they are running.",
+  get name() {
+    return t("widget.services.name")
+  },
+  get description() {
+    return t("widget.services.desc")
+  },
   icon: Box,
   component: Services,
   defaultSize: { w: 348, h: 250 },
@@ -66,10 +71,13 @@ export default defineWidget({
   maxSize: { w: 520, h: 560 },
   addByDefault: true,
   settings: [
-    { key: "count", label: "Apps shown", type: "number", default: 4, min: 1, max: 10 },
+    { key: "count", get label() { return t("widget.services.count") }, type: "number", default: 4, min: 1, max: 10 },
     {
-      key: "source", label: "Show", type: "select", default: "all",
-      options: [{ value: "all", label: "All apps" }, { value: "favorites", label: "Favorites only" }],
+      key: "source", get label() { return t("widget.services.show") }, type: "select", default: "all",
+      options: [
+        { value: "all", get label() { return t("widget.services.all") } },
+        { value: "favorites", get label() { return t("widget.services.favorites") } },
+      ],
     },
   ],
 })

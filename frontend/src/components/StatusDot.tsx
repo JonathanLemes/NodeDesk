@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { t } from "@/i18n"
 
 const COLORS: Record<string, string> = {
   running: "bg-[var(--ok)]",
@@ -12,10 +13,13 @@ export function StatusDot({ status, className }: { status: string; className?: s
   return <span className={cn("inline-block size-2 shrink-0 rounded-full", COLORS[status] ?? COLORS.unknown, className)} />
 }
 
-export const STATUS_LABEL: Record<string, string> = {
-  running: "Running",
-  partial: "Partial",
-  failed: "Failed",
-  stopped: "Stopped",
-  unknown: "—",
+/** Human label for an app / container status (resolved at call time so it follows the language). */
+export function statusLabel(status: string): string {
+  switch (status) {
+    case "running": return t("status.running")
+    case "partial": return t("status.partial")
+    case "failed": return t("status.failed")
+    case "stopped": return t("status.stopped")
+    default: return "—"
+  }
 }

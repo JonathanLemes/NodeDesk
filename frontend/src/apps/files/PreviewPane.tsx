@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import { formatBytes, formatDate } from "@/lib/format"
 import { fileUrl } from "@/services/queries"
 import type { FileEntry } from "@/types/api"
+import { t } from "@/i18n"
 
 interface PreviewPaneProps {
   root: string
@@ -39,7 +40,7 @@ export function PreviewPane({ root, selected, folderName, folderItems, onOpen, o
         {selected.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" aria-label="Actions"><MoreHorizontal /></Button>
+              <Button variant="ghost" size="icon-sm" aria-label={t("files.actions")}><MoreHorizontal /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44" onCloseAutoFocus={(e) => e.preventDefault()}>{menu}</DropdownMenuContent>
           </DropdownMenu>
@@ -64,27 +65,27 @@ export function PreviewPane({ root, selected, folderName, folderItems, onOpen, o
             {describeKind(one.name, one.kind)}{!one.isDir && ` • ${formatBytes(one.size)}`}
           </p>
           <dl className="mt-4 divide-y divide-border/70 border-t border-border/70">
-            <Row label="Modified">{formatDate(one.modTime)}</Row>
-            {one.isDir && one.items !== undefined && <Row label="Contains">{one.items} item{one.items === 1 ? "" : "s"}</Row>}
-            {dims && <Row label="Dimensions">{dims}</Row>}
-            <Row label="Permissions"><span className="font-mono text-xs">{one.mode}</span></Row>
+            <Row label={t("files.col_modified")}>{formatDate(one.modTime)}</Row>
+            {one.isDir && one.items !== undefined && <Row label={t("files.contains")}>{t("files.items", { count: one.items })}</Row>}
+            {dims && <Row label={t("files.dimensions")}>{dims}</Row>}
+            <Row label={t("files.permissions")}><span className="font-mono text-xs">{one.mode}</span></Row>
           </dl>
           <div className="mt-auto flex gap-2 pt-4">
-            <Button size="sm" className="flex-1" onClick={() => onOpen(one)}>{one.isDir ? "Open" : one.editable ? "Open / Edit" : "Open"}</Button>
-            <Button size="sm" variant="secondary" onClick={() => onDownload([one])}>Download</Button>
+            <Button size="sm" className="flex-1" onClick={() => onOpen(one)}>{one.isDir ? t("common.open") : one.editable ? t("files.open_edit") : t("common.open")}</Button>
+            <Button size="sm" variant="secondary" onClick={() => onDownload([one])}>{t("common.download")}</Button>
           </div>
         </div>
       ) : selected.length > 1 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center">
-          <p className="text-[15px] font-semibold">{selected.length} items selected</p>
+          <p className="text-[15px] font-semibold">{t("files.n_selected", { count: selected.length })}</p>
           <p className="text-[13px] text-muted-foreground">{formatBytes(selected.reduce((n, e) => n + (e.isDir ? 0 : e.size), 0))}</p>
-          <Button size="sm" variant="secondary" className="mt-3" onClick={() => onDownload(selected)}>Download as zip</Button>
+          <Button size="sm" variant="secondary" className="mt-3" onClick={() => onDownload(selected)}>{t("files.download_zip")}</Button>
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center text-muted-foreground">
           <p className="text-[15px] font-semibold text-foreground">{folderName}</p>
-          <p className="text-[13px]">{folderItems} item{folderItems === 1 ? "" : "s"}</p>
-          <p className="mt-2 text-xs">Select a file to preview it</p>
+          <p className="text-[13px]">{t("files.items", { count: folderItems })}</p>
+          <p className="mt-2 text-xs">{t("files.select_to_preview")}</p>
         </div>
       )}
     </aside>

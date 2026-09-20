@@ -7,6 +7,7 @@ import { RenameInput } from "@/apps/files/RenameInput"
 import { formatBytes, formatDate } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import type { FileEntry } from "@/types/api"
+import { t } from "@/i18n"
 
 export type SortKey = "name" | "size" | "modTime" | "kind"
 export interface Sort { key: SortKey; dir: "asc" | "desc" }
@@ -99,7 +100,7 @@ export function GridView(p: ViewProps) {
               </span>
             )}
             <span className="text-[11px] text-muted-foreground">
-              {p.showPath ? parentOf(e.path) : e.isDir ? (e.items === undefined ? "" : `${e.items} item${e.items === 1 ? "" : "s"}`) : formatBytes(e.size)}
+              {p.showPath ? parentOf(e.path) : e.isDir ? (e.items === undefined ? "" : t("files.items", { count: e.items })) : formatBytes(e.size)}
             </span>
           </div>
         )
@@ -124,10 +125,10 @@ export function ListView(p: ListViewProps) {
   return (
     <div className="min-w-[520px] text-[13px]">
       <div className="sticky top-0 z-[1] flex items-center gap-3 border-b border-border/70 bg-background/95 px-5 py-1.5 text-[11.5px] font-medium text-muted-foreground backdrop-blur">
-        {head("name", "Name", "flex-1")}
-        {head("modTime", "Modified", "w-36")}
-        {head("size", "Size", "w-20 justify-end")}
-        {head("kind", "Kind", "w-32")}
+        {head("name", t("files.col_name"), "flex-1")}
+        {head("modTime", t("files.col_modified"), "w-36")}
+        {head("size", t("files.col_size"), "w-20 justify-end")}
+        {head("kind", t("files.col_kind"), "w-32")}
       </div>
       <div className="p-2">
         {p.entries.map((e) => {

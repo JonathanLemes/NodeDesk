@@ -18,6 +18,7 @@ import { errorMessage, filesApi, fileUrl, useRoots } from "@/services/queries"
 import { useWindows } from "@/stores/windows"
 import type { FileKind, TextFile } from "@/types/api"
 import { useWindowContext, WindowToolbar } from "@/windows/context"
+import { t } from "@/i18n"
 
 const CodeEditor = lazy(() => import("./CodeEditor"))
 const TEXT_KINDS: FileKind[] = ["text", "code", "json", "yaml", "log", "markdown"]
@@ -59,7 +60,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
     try {
       const res = await filesApi.writeText(root, path, draft, force ? 0 : file.modTime)
       setFile({ content: draft, size: res.size, modTime: res.modTime })
-      toast.success("Saved")
+      toast.success(t("viewer.saved"))
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) setConflict(true)
       else toast.error(errorMessage(e))
@@ -70,9 +71,9 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
 
   useAppMenus({
     File: [
-      { label: "Save", shortcut: "Ctrl+S", onSelect: () => save(), disabled: !dirty || readOnly },
-      { label: "Reload from Disk", onSelect: load, disabled: !isText },
-      { label: "Download", onSelect: () => window.open(fileUrl.download(root, [path])), separatorBefore: true },
+      { label: t("common.save"), shortcut: "Ctrl+S", onSelect: () => save(), disabled: !dirty || readOnly },
+      { label: t("viewer.reload_disk"), onSelect: load, disabled: !isText },
+      { label: t("common.download"), onSelect: () => window.open(fileUrl.download(root, [path])), separatorBefore: true },
     ],
   })
 
@@ -101,7 +102,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
       content = <iframe src={src} title={name} className="size-full border-0 bg-white" />
       break
     case isText && error !== null:
-      content = <Empty className="h-full"><EmptyHeader><EmptyMedia variant="icon"><FileQuestion /></EmptyMedia><EmptyTitle>Can’t open this file</EmptyTitle><EmptyDescription>{error}</EmptyDescription></EmptyHeader></Empty>
+      content = <Empty className="h-full"><EmptyHeader><EmptyMedia variant="icon"><FileQuestion /></EmptyMedia><EmptyTitle>{t("viewer.cant_open")}</EmptyTitle><EmptyDescription>{error}</EmptyDescription></EmptyHeader></Empty>
       break
     case isText && file === null:
       content = <div className="flex flex-col gap-2 p-6"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-4 w-2/3" /><Skeleton className="h-4 w-1/3" /></div>
@@ -117,7 +118,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
       break
     case isText:
       content = (
-        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading editor…</div>}>
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">{t("viewer.loading_editor")}</div>}>
           <CodeEditor value={draft} fileName={name} readOnly={readOnly} dark={resolved === "dark"} onChange={setDraft} onSave={() => save()} />
         </Suspense>
       )
@@ -127,10 +128,10 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
         <Empty className="h-full">
           <EmptyHeader>
             <EmptyMedia variant="icon"><FileQuestion /></EmptyMedia>
-            <EmptyTitle>No preview available</EmptyTitle>
-            <EmptyDescription>NodeDesk can’t display this type of file, but you can download it.</EmptyDescription>
+            <EmptyTitle>{t("viewer.no_preview")}</EmptyTitle>
+            <EmptyDescription>{t("viewer.no_preview_desc")}</EmptyDescription>
           </EmptyHeader>
-          <Button size="sm" onClick={() => window.open(fileUrl.download(root, [path]))}><Download data-icon="inline-start" />Download</Button>
+          <Button size="sm" onClick={() => window.open(fileUrl.download(root, [path]))}><Download data-icon="inline-start" />{t("common.download")}</Button>
         </Empty>
       )
   }
@@ -141,27 +142,27 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
         <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">{dirty ? "● " : ""}{name}</span>
         {kind === "markdown" && (
           <ToggleGroup type="single" value={mode} onValueChange={(v) => v && setMode(v as "preview" | "edit")} size="sm">
-            <ToggleGroupItem value="preview" aria-label="Preview"><Eye /></ToggleGroupItem>
-            <ToggleGroupItem value="edit" aria-label="Edit"><Pencil /></ToggleGroupItem>
+            <ToggleGroupItem value="preview" aria-label={t("viewer.preview")}><Eye /></ToggleGroupItem>
+            <ToggleGroupItem value="edit" aria-label={t("common.edit")}><Pencil /></ToggleGroupItem>
           </ToggleGroup>
         )}
         {isText && !readOnly && (
-          <Button size="sm" disabled={!dirty || saving} onClick={() => save()}><Save data-icon="inline-start" />Save</Button>
+          <Button size="sm" disabled={!dirty || saving} onClick={() => save()}><Save data-icon="inline-start" />{t("common.save")}</Button>
         )}
-        {isText && readOnly && <span className="text-xs text-muted-foreground">Read-only</span>}
-        <Button variant="ghost" size="icon" aria-label="Download" onClick={() => window.open(fileUrl.download(root, [path]))}><Download /></Button>
+        {isText && readOnly && <span className="text-xs text-muted-foreground">{t("common.read_only")}</span>}
+        <Button variant="ghost" size="icon" aria-label={t("common.download")} onClick={() => window.open(fileUrl.download(root, [path]))}><Download /></Button>
       </WindowToolbar>
       <div className="min-h-0 flex-1">{content}</div>
 
       <AlertDialog open={conflict} onOpenChange={setConflict}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>The file changed on disk</AlertDialogTitle>
-            <AlertDialogDescription>Someone (or something) modified “{name}” after you opened it. Overwrite it with your version, or reload the disk version and lose your edits?</AlertDialogDescription>
+            <AlertDialogTitle>{t("viewer.conflict_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("viewer.conflict_desc", { name })}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={load}>Reload</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => save(true)}>Overwrite</AlertDialogAction>
+            <AlertDialogCancel onClick={load}>{t("viewer.reload")}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => save(true)}>{t("viewer.overwrite")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

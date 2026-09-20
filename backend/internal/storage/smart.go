@@ -14,7 +14,7 @@ import (
 // when smartctl is missing or not permitted the API reports "unavailable".
 type SMART struct {
 	Available   bool     `json:"available"`
-	Reason      string   `json:"reason,omitempty"`
+	Reason      string   `json:"reason,omitempty"` // not_installed | unreadable
 	Passed      *bool    `json:"passed,omitempty"`
 	Temperature *float64 `json:"temperature,omitempty"`
 	PowerOnH    *int64   `json:"powerOnHours,omitempty"`
@@ -62,7 +62,7 @@ func (s *Service) SMART(ctx context.Context, name string) (SMART, error) {
 func runSmartctl(ctx context.Context, name string) SMART {
 	bin, err := exec.LookPath("smartctl")
 	if err != nil {
-		return SMART{Reason: "smartctl is not installed"}
+		return SMART{Reason: "not_installed"}
 	}
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -91,7 +91,7 @@ func runSmartctl(ctx context.Context, name string) SMART {
 		} `json:"nvme_smart_health_information_log"`
 	}
 	if json.Unmarshal(out, &doc) != nil || doc.SmartStatus == nil {
-		return SMART{Reason: "smartctl could not read this disk (root privileges are usually required)"}
+		return SMART{Reason: "unreadable"}
 	}
 	r := SMART{Available: true, Passed: &doc.SmartStatus.Passed}
 	if doc.Temperature != nil {

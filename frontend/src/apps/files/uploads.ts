@@ -2,6 +2,7 @@ import { create } from "zustand"
 
 import { queryClient } from "@/services/queryClient"
 import { errorMessage } from "@/services/queries"
+import { t } from "@/i18n"
 
 export interface UploadItem {
   id: number
@@ -68,10 +69,10 @@ function send(job: UploadJob, onProgress: (loaded: number) => void): Promise<voi
       try {
         reject(new Error(JSON.parse(xhr.responseText).error))
       } catch {
-        reject(new Error(xhr.statusText || "Upload failed"))
+        reject(new Error(xhr.statusText || t("upload.failed")))
       }
     }
-    xhr.onerror = () => reject(new Error("Network error"))
+    xhr.onerror = () => reject(new Error(t("upload.network")))
     xhr.send(job.file)
   })
 }

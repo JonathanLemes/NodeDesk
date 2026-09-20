@@ -1,3 +1,5 @@
+import { t } from "@/i18n"
+
 export const parentOf = (p: string) => {
   const i = p.lastIndexOf("/")
   return i <= 0 ? "/" : p.slice(0, i)
@@ -11,16 +13,21 @@ export function crumbsOf(p: string): { name: string; path: string }[] {
   return parts.map((name, i) => ({ name, path: "/" + parts.slice(0, i + 1).join("/") }))
 }
 
-const KIND_LABEL: Record<string, string> = {
-  folder: "Folder", image: "image", video: "video", audio: "audio", pdf: "PDF document", markdown: "Markdown document",
-  json: "JSON document", yaml: "YAML document", log: "Log file", code: "Source file", text: "Text document", archive: "Archive", other: "Document",
-}
-
 export function describeKind(name: string, kind: string): string {
-  if (kind === "folder") return "Folder"
+  if (kind === "folder") return t("kind.folder")
   const ext = name.includes(".") ? name.slice(name.lastIndexOf(".") + 1).toUpperCase() : ""
-  if (["image", "video", "audio"].includes(kind)) return `${ext || "Media"} ${KIND_LABEL[kind]}`
-  if (kind === "archive") return `${ext || "Archive"} archive`
-  if (kind === "code" || kind === "other") return ext ? `${ext} file` : "File"
-  return KIND_LABEL[kind] ?? "File"
+  switch (kind) {
+    case "image": return t("kind.image", { ext: ext || "—" })
+    case "video": return t("kind.video", { ext: ext || "—" })
+    case "audio": return t("kind.audio", { ext: ext || "—" })
+    case "archive": return t("kind.archive", { ext: ext || "—" })
+    case "code": case "other": return ext ? t("kind.file_ext", { ext }) : t("kind.file")
+    case "pdf": return t("kind.pdf")
+    case "markdown": return t("kind.markdown")
+    case "json": return t("kind.json")
+    case "yaml": return t("kind.yaml")
+    case "log": return t("kind.log")
+    case "text": return t("kind.text")
+  }
+  return t("kind.file")
 }

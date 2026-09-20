@@ -250,5 +250,6 @@ export type Settings = Partial<{
   clock24h: boolean
   "desktop.watermark": boolean
   "profile.name": string
+  language: "auto" | "en" | "pt"
   "files.favorites": FileRef[]
 }>

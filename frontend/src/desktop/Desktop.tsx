@@ -13,6 +13,7 @@ import { useSetting } from "@/hooks/useSetting"
 import { useUi } from "@/stores/ui"
 import { launch } from "@/windows/launch"
 import { WindowLayer } from "@/windows/WindowLayer"
+import { t } from "@/i18n"
 
 export function Desktop({ onLock }: { onLock: () => void }) {
   useLiveStreams(true)
@@ -47,19 +48,19 @@ export function Desktop({ onLock }: { onLock: () => void }) {
           <div className="absolute inset-0" onDoubleClick={() => editing && useUi.getState().setEditingWidgets(false)}>
             {watermark && (
               <div className="pointer-events-none absolute top-[76px] right-9 text-white/55 drop-shadow-sm select-none">
-                <p className="text-[30px] leading-none font-light tracking-tight">NodeDesk</p>
-                <p className="mt-3 text-[15px] leading-snug text-white/50">Your Home Server<br />Everyday, Extraordinary.</p>
+                <p className="text-[30px] leading-none font-light tracking-tight">{t("app.name")}</p>
+                <p className="mt-3 text-[15px] leading-snug text-white/50">{t("desktop.tagline_1")}<br />{t("desktop.tagline_2")}</p>
                 <div className="mt-3 h-px w-8 bg-white/40" />
               </div>
             )}
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="min-w-52">
-          <ContextMenuItem onSelect={() => useUi.getState().setEditingWidgets(true)}>Edit Widgets</ContextMenuItem>
-          <ContextMenuItem onSelect={() => useUi.getState().setWidgetGalleryOpen(true)}>Add Widget…</ContextMenuItem>
+          <ContextMenuItem onSelect={() => useUi.getState().setEditingWidgets(true)}>{t("menubar.edit_widgets_title")}</ContextMenuItem>
+          <ContextMenuItem onSelect={() => useUi.getState().setWidgetGalleryOpen(true)}>{t("widgets.add")}</ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem onSelect={() => launch("settings", { section: "desktop" })}>Change Wallpaper…</ContextMenuItem>
-          <ContextMenuItem onSelect={() => launch("files")}>Open Files</ContextMenuItem>
+          <ContextMenuItem onSelect={() => launch("settings", { section: "desktop" })}>{t("desktop.change_wallpaper")}</ContextMenuItem>
+          <ContextMenuItem onSelect={() => launch("files")}>{t("desktop.open_files")}</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 

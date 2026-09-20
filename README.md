@@ -10,13 +10,11 @@
 
 <p align="center"><img src="examples/design.png" alt="NodeDesk design reference" width="820"></p>
 
-> The image above is the **design reference** the UI is built against (`examples/design.png`).
-
 ## What you get
 
 | | |
 |---|---|
-| **Desktop shell** | Wallpaper, menu bar, dock with magnification, draggable / resizable windows, light and dark mode, `Ctrl/⌘ K` launcher. |
+| **Desktop shell** | Wallpaper, menu bar, dock with magnification, draggable / resizable windows, light and dark mode, English and Portuguese, `Ctrl/⌘ K` launcher. |
 | **Widgets** | *System* (CPU / RAM / GPU), *Storage* (mounts and usage), *Services* (your apps and their state). Arrange them freely; the layout is saved. Adding your own is a matter of dropping a folder in ([guide](docs/widgets.md)). |
 | **Apps** | A first-class notion of “app”: a Docker container, a systemd service, an external URL or a manual entry, shown as an application. Discover running containers with one click, pin any app to the dock or as a draggable desktop icon that opens it in a new tab. |
 | **Files** | A Finder-style explorer: grid / list, preview pane, context menus, drag & drop, upload (files and folders), download (zip for folders), rename, copy, move, trash, search, properties, and a built-in editor (CodeMirror 6) with Markdown, JSON / YAML, code, image, audio, video and PDF preview. Only folders you authorise are reachable. |
@@ -46,6 +44,7 @@ The binary contains the whole UI (`go:embed`). At runtime it needs nothing but i
 - [Configuration](docs/configuration.md): environment variables and in-app settings.
 - [Security](docs/security.md): threat model, sandboxing of files, what is deliberately *not* there.
 - [Development](docs/development.md): dev setup, project layout, tests.
+- [Languages](docs/i18n.md): English and Portuguese, and how to add more.
 - [Widgets](docs/widgets.md): build your own widget.
 - [Integrations](docs/integrations.md): add a desktop app or a new kind of service.
 - [Contributing](CONTRIBUTING.md)

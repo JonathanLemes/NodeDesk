@@ -20,6 +20,7 @@ var settingValidators = map[string]func(json.RawMessage) bool{
 	"clock24h":          isBool,
 	"desktop.watermark": isBool,
 	"profile.name":      stringMax(40),
+	"language":          oneOf("auto", "en", "pt"),
 	"files.favorites":   validFavorites,
 }
 

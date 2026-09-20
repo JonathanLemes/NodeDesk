@@ -77,7 +77,7 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 		}
 		c, err := r.Cookie(auth.CookieName)
 		if err != nil || !s.Auth.Validate(c.Value) {
-			httpx.JSON(w, http.StatusUnauthorized, map[string]string{"code": "unauthorized", "error": "sign in required"})
+			httpx.JSON(w, http.StatusUnauthorized, map[string]string{"code": "unauthorized", "error": httpx.Localize(r, "sign in required", nil, "sign in required")})
 			return
 		}
 		next.ServeHTTP(w, r)

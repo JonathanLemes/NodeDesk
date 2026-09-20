@@ -8,11 +8,12 @@ import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { WALLPAPERS } from "@/desktop/wallpapers"
-import { useSetting } from "@/hooks/useSetting"
+import { useClock24, useSetting } from "@/hooks/useSetting"
 import { useTheme } from "@/hooks/useTheme"
 import { formatBytes, formatDate, formatDuration } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -20,16 +21,17 @@ import { api } from "@/services/api"
 import { errorMessage, keys, useAudit, useAuth, useRoots, useRootMutations, useSystemInfo } from "@/services/queries"
 import { useUi } from "@/stores/ui"
 import { launch } from "@/windows/launch"
+import { LANGUAGES, t, type LangSetting } from "@/i18n"
 
 type Section = "general" | "desktop" | "files" | "security" | "activity" | "about"
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
-  { id: "general", label: "General", icon: Settings2 },
-  { id: "desktop", label: "Desktop & Dock", icon: LayoutDashboard },
-  { id: "files", label: "File Access", icon: FolderLock },
-  { id: "security", label: "Security", icon: Lock },
-  { id: "activity", label: "Activity", icon: ScrollText },
-  { id: "about", label: "About", icon: Info },
+  { id: "general", get label() { return t("settings.sec_general") }, icon: Settings2 },
+  { id: "desktop", get label() { return t("settings.sec_desktop") }, icon: LayoutDashboard },
+  { id: "files", get label() { return t("settings.sec_files") }, icon: FolderLock },
+  { id: "security", get label() { return t("settings.sec_security") }, icon: Lock },
+  { id: "activity", get label() { return t("settings.sec_activity") }, icon: ScrollText },
+  { id: "about", get label() { return t("settings.sec_about") }, icon: Info },
 ]
 
 function Group({ title, children, description }: { title: string; description?: string; children: ReactNode }) {
@@ -58,24 +60,36 @@ function General() {
   const { theme, setTheme } = useTheme()
   const [name, setName] = useSetting("profile.name")
   const [draft, setDraft] = useState(name)
-  const [h24, setH24] = useSetting("clock24h")
+  const [h24, setH24] = useClock24()
+  const [language, setLanguage] = useSetting("language")
   useEffect(() => setDraft(name), [name])
   return (
     <>
-      <Group title="Appearance">
-        <Row label="Theme" hint="Auto follows your browser or operating system.">
+      <Group title={t("menubar.appearance")}>
+        <Row label={t("settings.theme")} hint={t("settings.theme_hint")}>
           <ToggleGroup type="single" value={theme} onValueChange={(v) => v && setTheme(v as typeof theme)} variant="outline" size="sm">
-            <ToggleGroupItem value="light" className="gap-1.5 px-3"><Sun className="size-3.5" />Light</ToggleGroupItem>
-            <ToggleGroupItem value="dark" className="gap-1.5 px-3"><Moon className="size-3.5" />Dark</ToggleGroupItem>
-            <ToggleGroupItem value="system" className="gap-1.5 px-3"><Monitor className="size-3.5" />Auto</ToggleGroupItem>
+            <ToggleGroupItem value="light" className="gap-1.5 px-3"><Sun className="size-3.5" />{t("theme.light")}</ToggleGroupItem>
+            <ToggleGroupItem value="dark" className="gap-1.5 px-3"><Moon className="size-3.5" />{t("theme.dark")}</ToggleGroupItem>
+            <ToggleGroupItem value="system" className="gap-1.5 px-3"><Monitor className="size-3.5" />{t("theme.auto")}</ToggleGroupItem>
           </ToggleGroup>
         </Row>
       </Group>
-      <Group title="Profile">
-        <Row label="Display name" hint="Shown in the menu bar avatar.">
+      <Group title={t("settings.profile")}>
+        <Row label={t("settings.display_name")} hint={t("settings.display_name_hint")}>
           <Input value={draft} maxLength={40} onChange={(e) => setDraft(e.target.value)} onBlur={() => draft.trim() && draft !== name && setName(draft.trim())} className="h-8 w-48" />
         </Row>
-        <Row label="24-hour clock"><Switch checked={h24} onCheckedChange={setH24} /></Row>
+        <Row label={t("settings.language")} hint={t("settings.language_hint")}>
+          <Select value={language} onValueChange={(v) => setLanguage(v as LangSetting)}>
+            <SelectTrigger className="h-8 w-44"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="auto">{t("settings.language_auto")}</SelectItem>
+                {LANGUAGES.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Row>
+        <Row label={t("settings.clock24")}><Switch checked={h24} onCheckedChange={setH24} /></Row>
       </Group>
     </>
   )
@@ -91,7 +105,7 @@ function Desktop() {
   useEffect(() => setDockDraft(size), [size])
   return (
     <>
-      <Group title="Wallpaper">
+      <Group title={t("settings.wallpaper")}>
         <div className="grid grid-cols-5 gap-2.5">
           {WALLPAPERS.map((w) => (
             <button key={w.id} onClick={() => setWallpaper(`builtin:${w.id}`)} className="group text-center">
@@ -101,22 +115,22 @@ function Desktop() {
           ))}
         </div>
         <Field className="mt-4">
-          <FieldLabel htmlFor="wp-url">Custom image</FieldLabel>
+          <FieldLabel htmlFor="wp-url">{t("settings.custom_image")}</FieldLabel>
           <div className="flex gap-2">
-            <Input id="wp-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://… or file:<root>:/Pictures/photo.jpg" className="h-8" />
-            <Button size="sm" variant="secondary" disabled={!url.trim()} onClick={() => setWallpaper(url.trim())}>Apply</Button>
+            <Input id="wp-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder={t("settings.custom_image_ph")} className="h-8" />
+            <Button size="sm" variant="secondary" disabled={!url.trim()} onClick={() => setWallpaper(url.trim())}>{t("common.apply")}</Button>
           </div>
-          <FieldDescription>An image URL, or a file from the file manager using <code>file:rootId:/path</code>.</FieldDescription>
+          <FieldDescription>{t("settings.custom_image_hint")}</FieldDescription>
         </Field>
       </Group>
-      <Group title="Dock">
-        <Row label="Icon size"><Slider className="w-40" min={40} max={80} step={2} value={[dockDraft]} onValueChange={([v]) => setDockDraft(v)} onValueCommit={([v]) => setSize(v)} /></Row>
-        <Row label="Magnification" hint="Icons grow under the pointer."><Switch checked={magnify} onCheckedChange={setMagnify} /></Row>
+      <Group title={t("settings.dock")}>
+        <Row label={t("settings.icon_size")}><Slider className="w-40" min={40} max={80} step={2} value={[dockDraft]} onValueChange={([v]) => setDockDraft(v)} onValueCommit={([v]) => setSize(v)} /></Row>
+        <Row label={t("settings.magnification")} hint={t("settings.magnification_hint")}><Switch checked={magnify} onCheckedChange={setMagnify} /></Row>
       </Group>
-      <Group title="Widgets">
-        <Row label="Desktop watermark"><Switch checked={watermark} onCheckedChange={setWatermark} /></Row>
-        <Row label="Arrange widgets" hint="Drag, resize, add or remove widgets on the desktop.">
-          <Button size="sm" variant="secondary" onClick={() => useUi.getState().setEditingWidgets(true)}>Edit widgets…</Button>
+      <Group title={t("settings.widgets")}>
+        <Row label={t("settings.watermark")}><Switch checked={watermark} onCheckedChange={setWatermark} /></Row>
+        <Row label={t("settings.arrange")} hint={t("settings.arrange_hint")}>
+          <Button size="sm" variant="secondary" onClick={() => useUi.getState().setEditingWidgets(true)}>{t("menubar.edit_widgets")}</Button>
         </Row>
       </Group>
     </>
@@ -131,28 +145,28 @@ function FileAccess() {
   const [readOnly, setReadOnly] = useState(false)
   return (
     <>
-      <p className="mb-4 text-[13px] text-muted-foreground">NodeDesk can only read or change files inside the folders listed here. Everything else on the server stays out of reach, even for the admin session.</p>
-      <Group title="Authorised folders">
+      <p className="mb-4 text-[13px] text-muted-foreground">{t("settings.roots_intro")}</p>
+      <Group title={t("settings.roots")}>
         {(roots ?? []).map((r) => (
           <div key={r.id} className="flex items-center gap-3 border-b border-border/60 py-2.5 first:pt-0 last:border-0 last:pb-0">
             <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] font-medium">{r.name} {!r.available && <span className="text-xs font-normal text-destructive">(unavailable)</span>}</p>
+              <p className="text-[13.5px] font-medium">{r.name} {!r.available && <span className="text-xs font-normal text-destructive">{t("settings.unavailable")}</span>}</p>
               <p className="truncate font-mono text-[11.5px] text-muted-foreground">{r.path}</p>
             </div>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">Read-only <Switch checked={r.readOnly} onCheckedChange={(v) => update.mutate({ id: r.id, name: r.name, readOnly: v })} /></label>
-            <Button size="icon-sm" variant="ghost" aria-label={`Remove ${r.name}`} disabled={(roots?.length ?? 0) <= 1} onClick={() => remove.mutate(r.id)}><Trash2 /></Button>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">{t("common.read_only")} <Switch checked={r.readOnly} onCheckedChange={(v) => update.mutate({ id: r.id, name: r.name, readOnly: v })} /></label>
+            <Button size="icon-sm" variant="ghost" aria-label={t("appform.remove_named", { name: r.name })} disabled={(roots?.length ?? 0) <= 1} onClick={() => remove.mutate(r.id)}><Trash2 /></Button>
           </div>
         ))}
       </Group>
-      <Group title="Add a folder">
+      <Group title={t("settings.add_folder")}>
         <FieldGroup>
           <div className="grid grid-cols-[1fr_2fr] gap-3">
-            <Field><FieldLabel htmlFor="root-name">Name</FieldLabel><Input id="root-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Media" className="h-8" /></Field>
-            <Field><FieldLabel htmlFor="root-path">Absolute path</FieldLabel><Input id="root-path" value={path} onChange={(e) => setPath(e.target.value)} placeholder="/mnt/media" className="h-8 font-mono" /></Field>
+            <Field><FieldLabel htmlFor="root-name">{t("common.name")}</FieldLabel><Input id="root-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("settings.root_name_ph")} className="h-8" /></Field>
+            <Field><FieldLabel htmlFor="root-path">{t("settings.abs_path")}</FieldLabel><Input id="root-path" value={path} onChange={(e) => setPath(e.target.value)} placeholder="/mnt/media" className="h-8 font-mono" /></Field>
           </div>
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-[13px]"><Switch checked={readOnly} onCheckedChange={setReadOnly} />Read-only</label>
-            <Button size="sm" disabled={!name.trim() || !path.trim() || add.isPending} onClick={() => add.mutate({ name, path, readOnly }, { onSuccess: () => { setName(""); setPath(""); toast.success("Folder authorised") } })}>Add folder</Button>
+            <label className="flex items-center gap-2 text-[13px]"><Switch checked={readOnly} onCheckedChange={setReadOnly} />{t("common.read_only")}</label>
+            <Button size="sm" disabled={!name.trim() || !path.trim() || add.isPending} onClick={() => add.mutate({ name, path, readOnly }, { onSuccess: () => { setName(""); setPath(""); toast.success(t("settings.folder_authorised")) } })}>{t("settings.add_folder_btn")}</Button>
           </div>
         </FieldGroup>
       </Group>
@@ -169,7 +183,7 @@ function Security() {
     setBusy(true)
     try {
       await api.post("/api/auth/password", { current, next })
-      toast.success("Password changed. Please sign in again.")
+      toast.success(t("settings.password_changed"))
       qc.invalidateQueries({ queryKey: keys.auth })
     } catch (e) {
       toast.error(errorMessage(e))
@@ -179,16 +193,16 @@ function Security() {
   }
   return (
     <>
-      <Group title="Admin password" description="Changing it signs out every session.">
+      <Group title={t("settings.admin_password")} description={t("settings.admin_password_desc")}>
         <FieldGroup>
-          <Field><FieldLabel htmlFor="pw-cur">Current password</FieldLabel><Input id="pw-cur" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className="h-8" /></Field>
-          <Field><FieldLabel htmlFor="pw-new">New password</FieldLabel><Input id="pw-new" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className="h-8" /><FieldDescription>At least 8 characters.</FieldDescription></Field>
-          <div><Button size="sm" disabled={busy || !current || next.length < 8} onClick={change}>Change password</Button></div>
+          <Field><FieldLabel htmlFor="pw-cur">{t("settings.current_password")}</FieldLabel><Input id="pw-cur" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} className="h-8" /></Field>
+          <Field><FieldLabel htmlFor="pw-new">{t("settings.new_password")}</FieldLabel><Input id="pw-new" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} className="h-8" /><FieldDescription>{t("settings.password_hint")}</FieldDescription></Field>
+          <div><Button size="sm" disabled={busy || !current || next.length < 8} onClick={change}>{t("settings.change_password")}</Button></div>
         </FieldGroup>
       </Group>
-      <Group title="Sign out">
-        <Row label="End this session on this browser">
-          <Button size="sm" variant="secondary" onClick={async () => { await api.post("/api/auth/logout"); qc.invalidateQueries({ queryKey: keys.auth }) }}>Sign out</Button>
+      <Group title={t("settings.sign_out")}>
+        <Row label={t("settings.end_session")}>
+          <Button size="sm" variant="secondary" onClick={async () => { await api.post("/api/auth/logout"); qc.invalidateQueries({ queryKey: keys.auth }) }}>{t("settings.sign_out")}</Button>
         </Row>
       </Group>
     </>
@@ -198,8 +212,8 @@ function Security() {
 function Activity() {
   const { data } = useAudit()
   return (
-    <Group title="Recent activity" description="Sign-ins, container actions, file deletions and configuration changes.">
-      {data?.length === 0 && <p className="text-sm text-muted-foreground">Nothing yet.</p>}
+    <Group title={t("settings.activity")} description={t("settings.activity_desc")}>
+      {data?.length === 0 && <p className="text-sm text-muted-foreground">{t("settings.nothing_yet")}</p>}
       <ul className="-my-1 divide-y divide-border/60">
         {data?.map((e) => (
           <li key={e.id} className="flex items-baseline gap-3 py-1.5 text-[12.5px]">
@@ -223,21 +237,21 @@ function About() {
         <div className="grid size-16 place-items-center rounded-2xl bg-primary text-primary-foreground"><Logo size={34} /></div>
         <div>
           <h3 className="text-lg font-semibold">NodeDesk</h3>
-          <p className="text-[13px] text-muted-foreground">Version {auth?.version ?? "dev"} · MIT License</p>
-          <button className="text-[13px] text-primary hover:underline" onClick={() => launch("files")}>Open Files</button>
+          <p className="text-[13px] text-muted-foreground">{t("settings.version", { version: auth?.version ?? "dev" })}</p>
+          <button className="text-[13px] text-primary hover:underline" onClick={() => launch("files")}>{t("desktop.open_files")}</button>
         </div>
       </div>
       {info && (
-        <Group title="This server">
+        <Group title={t("settings.this_server")}>
           <dl className="grid grid-cols-[7rem_1fr] gap-y-1.5 text-[13px]">
-            <dt className="text-muted-foreground">Hostname</dt><dd>{info.hostname}</dd>
-            <dt className="text-muted-foreground">System</dt><dd>{info.os}</dd>
-            <dt className="text-muted-foreground">Kernel</dt><dd>{info.kernel} ({info.arch})</dd>
-            <dt className="text-muted-foreground">CPU</dt><dd>{info.cpuModel} · {info.cores} threads</dd>
-            <dt className="text-muted-foreground">Memory</dt><dd>{formatBytes(info.memTotal)}</dd>
+            <dt className="text-muted-foreground">{t("settings.hostname")}</dt><dd>{info.hostname}</dd>
+            <dt className="text-muted-foreground">{t("about.system")}</dt><dd>{info.os}</dd>
+            <dt className="text-muted-foreground">{t("settings.kernel")}</dt><dd>{info.kernel} ({info.arch})</dd>
+            <dt className="text-muted-foreground">CPU</dt><dd>{info.cpuModel} · {t("about.threads", { count: info.cores })}</dd>
+            <dt className="text-muted-foreground">{t("about.memory")}</dt><dd>{formatBytes(info.memTotal)}</dd>
             {info.gpus.length > 0 && <><dt className="text-muted-foreground">GPU</dt><dd>{info.gpus.join(", ")}</dd></>}
-            <dt className="text-muted-foreground">Addresses</dt><dd>{info.ips.join(", ")}</dd>
-            <dt className="text-muted-foreground">Uptime</dt><dd>{formatDuration(info.uptime)}</dd>
+            <dt className="text-muted-foreground">{t("monitor.addresses")}</dt><dd>{info.ips.join(", ")}</dd>
+            <dt className="text-muted-foreground">{t("about.uptime")}</dt><dd>{formatDuration(info.uptime)}</dd>
           </dl>
         </Group>
       )}

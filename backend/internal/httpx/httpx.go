@@ -14,13 +14,16 @@ import (
 type Error struct {
 	Status  int
 	Code    string
-	Message string
+	Message string // English, already formatted
+	// Format and Args let Fail render the message in the client's language.
+	Format string
+	Args   []any
 }
 
 func (e *Error) Error() string { return e.Message }
 
 func Err(status int, code, format string, args ...any) *Error {
-	return &Error{Status: status, Code: code, Message: fmt.Sprintf(format, args...)}
+	return &Error{Status: status, Code: code, Message: fmt.Sprintf(format, args...), Format: format, Args: args}
 }
 
 func BadRequest(format string, args ...any) *Error {
@@ -59,11 +62,11 @@ func NoContent(w http.ResponseWriter) { w.WriteHeader(http.StatusNoContent) }
 func Fail(w http.ResponseWriter, r *http.Request, err error) {
 	var he *Error
 	if errors.As(err, &he) {
-		JSON(w, he.Status, map[string]string{"code": he.Code, "error": he.Message})
+		JSON(w, he.Status, map[string]string{"code": he.Code, "error": Localize(r, he.Format, he.Args, he.Message)})
 		return
 	}
 	slog.Error("request failed", "method", r.Method, "path", r.URL.Path, "err", err)
-	JSON(w, http.StatusInternalServerError, map[string]string{"code": "internal", "error": "internal error"})
+	JSON(w, http.StatusInternalServerError, map[string]string{"code": "internal", "error": Localize(r, "internal error", nil, "internal error")})
 }
 
 // Decode parses a JSON body (capped at 1 MiB) and rejects unknown fields.

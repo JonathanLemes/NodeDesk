@@ -22,4 +22,8 @@ export interface DesktopAppDefinition {
   dockOrder?: number
 }
 
-export const defineDesktopApp = (def: DesktopAppDefinition): DesktopAppDefinition => ({ singleton: true, ...def })
+/** Mutates instead of spreading so `title` can be a getter that follows the current language. */
+export const defineDesktopApp = (def: DesktopAppDefinition): DesktopAppDefinition => {
+  def.singleton ??= true
+  return def
+}

@@ -4,6 +4,7 @@ import { Ring } from "@/components/Ring"
 import { useMetrics } from "@/stores/metrics"
 import { defineWidget, type WidgetProps } from "@/widgets/sdk"
 import { WidgetPanel } from "@/widgets/WidgetPanel"
+import { t } from "@/i18n"
 
 function System(_: WidgetProps) {
   const cpu = useMetrics((s) => s.latest?.cpu)
@@ -12,15 +13,15 @@ function System(_: WidgetProps) {
   const connected = useMetrics((s) => s.connected)
 
   const worst = Math.max(cpu ?? 0, ram ?? 0, gpu?.util ?? 0)
-  const status = !connected ? { text: "Connecting", color: "bg-muted-foreground/40" }
-    : worst >= 90 ? { text: "High load", color: "bg-[var(--bad)]" }
-    : worst >= 75 ? { text: "Busy", color: "bg-[var(--warn)]" }
-    : { text: "All good", color: "bg-[var(--ok)]" }
+  const status = !connected ? { text: t("system.connecting"), color: "bg-muted-foreground/40" }
+    : worst >= 90 ? { text: t("system.high_load"), color: "bg-[var(--bad)]" }
+    : worst >= 75 ? { text: t("system.busy"), color: "bg-[var(--warn)]" }
+    : { text: t("system.all_good"), color: "bg-[var(--ok)]" }
 
   return (
     <WidgetPanel
       icon={Activity}
-      title="System"
+      title={t("widget.system.name")}
       trailing={
         <span className="flex items-center gap-1.5">
           {status.text}
@@ -39,8 +40,12 @@ function System(_: WidgetProps) {
 
 export default defineWidget({
   id: "system",
-  name: "System",
-  description: "CPU, RAM and GPU at a glance.",
+  get name() {
+    return t("widget.system.name")
+  },
+  get description() {
+    return t("widget.system.desc")
+  },
   icon: Activity,
   component: System,
   defaultSize: { w: 348, h: 200 },

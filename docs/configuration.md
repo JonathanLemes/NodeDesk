@@ -15,7 +15,7 @@ NodeDesk is configured with environment variables (process-level) and with the *
 
 ## In-app settings
 
-Theme, wallpaper, dock size and magnification, clock format, display name and the desktop watermark live in SQLite and follow you across browsers. Widget layout (position, size, per-widget settings) is stored in the `widgets` table. Authorised file folders are managed in **Settings → File Access**.
+Theme, language, wallpaper, dock size and magnification, clock format, display name and the desktop watermark live in SQLite and follow you across browsers. Widget layout (position, size, per-widget settings) is stored in the `widgets` table. Authorised file folders are managed in **Settings → File Access**.
 
 ## Permissions the server user needs
 

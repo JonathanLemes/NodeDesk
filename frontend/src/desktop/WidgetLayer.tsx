@@ -17,6 +17,7 @@ import type { WidgetPlacement } from "@/types/api"
 import { getWidget, widgetList } from "@/widgets/registry"
 import { settingValue, type SettingField, type WidgetDefinition } from "@/widgets/sdk"
 import { MENUBAR_HEIGHT } from "@/windows/launch"
+import { t } from "@/i18n"
 
 const GRID = 8
 const GAP = 16
@@ -160,7 +161,7 @@ function WidgetHost({ placement, editing }: { placement: WidgetPlacement; editin
           {editing && (
             <>
               <button
-                data-widget-control aria-label="Remove widget"
+                data-widget-control aria-label={t("widgets.remove")}
                 onClick={() => remove(placement.instanceId)}
                 className="absolute top-2 left-2 grid size-6 place-items-center rounded-full bg-foreground/70 text-background shadow"
               >
@@ -169,7 +170,7 @@ function WidgetHost({ placement, editing }: { placement: WidgetPlacement; editin
               {def.settings && def.settings.length > 0 && (
                 <Popover open={settingsOpen} onOpenChange={setSettingsOpen}>
                   <PopoverTrigger asChild>
-                    <button data-widget-control aria-label="Widget settings" className="absolute top-2 right-2 grid size-6 place-items-center rounded-full bg-foreground/70 text-background shadow">
+                    <button data-widget-control aria-label={t("widgets.settings")} className="absolute top-2 right-2 grid size-6 place-items-center rounded-full bg-foreground/70 text-background shadow">
                       <Settings2 className="size-3.5" />
                     </button>
                   </PopoverTrigger>
@@ -190,8 +191,8 @@ function WidgetHost({ placement, editing }: { placement: WidgetPlacement; editin
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onSelect={() => useUi.getState().setEditingWidgets(true)}>Edit Widgets</ContextMenuItem>
-        <ContextMenuItem onSelect={() => useUi.getState().setWidgetGalleryOpen(true)}>Add Widget…</ContextMenuItem>
+        <ContextMenuItem onSelect={() => useUi.getState().setEditingWidgets(true)}>{t("menubar.edit_widgets_title")}</ContextMenuItem>
+        <ContextMenuItem onSelect={() => useUi.getState().setWidgetGalleryOpen(true)}>{t("widgets.add")}</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem variant="destructive" onSelect={() => remove(placement.instanceId)}>Remove “{def.name}”</ContextMenuItem>
       </ContextMenuContent>
@@ -223,7 +224,7 @@ function EditBar() {
   const setEditing = useUi((s) => s.setEditingWidgets)
   return (
     <div className="glass-strong pointer-events-auto fixed top-11 left-1/2 z-[8600] flex -translate-x-1/2 items-center gap-2 rounded-full py-1.5 pr-1.5 pl-4 text-[13px] animate-[pop-in_0.18s_ease-out]">
-      <span className="text-muted-foreground">Drag to arrange · resize from the corner</span>
+      <span className="text-muted-foreground">{t("widgets.hint")}</span>
       <Button size="sm" variant="secondary" className="rounded-full" onClick={() => useUi.getState().setWidgetGalleryOpen(true)}>
         <Plus data-icon="inline-start" />Add
       </Button>
@@ -255,8 +256,8 @@ function WidgetGallery() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add a widget</DialogTitle>
-          <DialogDescription>Widgets live on your desktop. Drop new ones into <code>src/widgets</code> to extend this list.</DialogDescription>
+          <DialogTitle>{t("widgets.gallery_title")}</DialogTitle>
+          <DialogDescription>{t("widgets.gallery_desc")}</DialogDescription>
         </DialogHeader>
         <ul className="flex flex-col gap-1">
           {widgetList.map((def) => {

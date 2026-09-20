@@ -7,6 +7,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { cn } from "@/lib/utils"
 import { useSystemInfo } from "@/services/queries"
 import type { FileRef, FileRoot } from "@/types/api"
+import { t } from "@/i18n"
 
 export type Location = { kind: "dir"; root: string; path: string } | { kind: "trash" }
 
@@ -67,26 +68,26 @@ export function Sidebar({ roots, favorites, location, onNavigate, onDropTo, onRe
 
       {favorites.length > 0 && (
         <>
-          <p className="mt-4 mb-1 px-3 text-[11px] font-medium text-muted-foreground">Favorites</p>
+          <p className="mt-4 mb-1 px-3 text-[11px] font-medium text-muted-foreground">{t("files.favorites")}</p>
           <div className="flex flex-col gap-0.5">
             {favorites.map((f) =>
               item(`fav-${f.root}-${f.path}`, baseName(f.path) || f.root, Folder, !!here && here.root === f.root && here.path === f.path,
                 () => onNavigate({ kind: "dir", root: f.root, path: f.path }), f,
-                <ContextMenuItem onSelect={() => onRemoveFavorite(f)}>Remove from Favorites</ContextMenuItem>),
+                <ContextMenuItem onSelect={() => onRemoveFavorite(f)}>{t("files.remove_favorite")}</ContextMenuItem>),
             )}
           </div>
         </>
       )}
 
       <div className="mx-2 my-3 h-px bg-border/80" />
-      {item("trash", "Trash", Trash2, location?.kind === "trash", () => onNavigate({ kind: "trash" }), "trash")}
+      {item("trash", t("app.trash"), Trash2, location?.kind === "trash", () => onNavigate({ kind: "trash" }), "trash")}
 
       <div className="mt-auto flex items-center gap-2.5 border-t border-border/70 px-2 pt-3">
         <Server className="size-7 shrink-0 text-muted-foreground" strokeWidth={1.3} />
         <div className="min-w-0 text-[12px] leading-tight">
-          <p className="truncate font-medium">{info?.hostname ?? "NodeDesk"}</p>
+          <p className="truncate font-medium">{info?.hostname ?? t("app.name")}</p>
           <p className="truncate text-muted-foreground">{info?.ips[0] ?? ""}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground"><span className="size-1.5 rounded-full bg-[var(--ok)]" />Online</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-muted-foreground"><span className="size-1.5 rounded-full bg-[var(--ok)]" />{t("files.online")}</p>
         </div>
       </div>
     </aside>

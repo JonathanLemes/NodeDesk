@@ -7,6 +7,7 @@ import { useWindows, type DesktopWindow, type Geometry } from "@/stores/windows"
 import { WindowContext } from "@/windows/context"
 import { ErrorBoundary } from "@/windows/ErrorBoundary"
 import { DOCK_RESERVE, MENUBAR_HEIGHT, saveGeometry } from "@/windows/launch"
+import { t } from "@/i18n"
 
 type Edge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw"
 
@@ -136,9 +137,9 @@ export function WindowFrame({ win }: { win: DesktopWindow }) {
           className="group/titlebar relative flex h-[52px] shrink-0 items-center border-b border-border/70 bg-window select-none"
         >
           <div className="flex shrink-0 items-center gap-2 pr-3 pl-5" data-no-drag>
-            <TrafficLight color="#ff5f57" label="Close" onClick={() => close(win.id)} focused={focused}><X strokeWidth={3} /></TrafficLight>
-            <TrafficLight color="#febc2e" label="Minimize" onClick={() => minimize(win.id)} focused={focused}><Minus strokeWidth={3} /></TrafficLight>
-            <TrafficLight color="#28c840" label="Zoom" onClick={zoom} focused={focused}><Plus strokeWidth={3} /></TrafficLight>
+            <TrafficLight color="#ff5f57" label={t("window.close")} onClick={() => close(win.id)} focused={focused}><X strokeWidth={3} /></TrafficLight>
+            <TrafficLight color="#febc2e" label={t("window.minimize")} onClick={() => minimize(win.id)} focused={focused}><Minus strokeWidth={3} /></TrafficLight>
+            <TrafficLight color="#28c840" label={t("window.zoom")} onClick={zoom} focused={focused}><Plus strokeWidth={3} /></TrafficLight>
           </div>
           <div ref={setTitlebar} className="peer flex min-w-0 flex-1 items-center gap-2 pr-3" />
           <span className="pointer-events-none absolute inset-x-0 hidden text-center text-[13px] font-semibold text-foreground/85 peer-empty:block">
@@ -147,7 +148,7 @@ export function WindowFrame({ win }: { win: DesktopWindow }) {
         </div>
         <div className="relative min-h-0 flex-1">
           <ErrorBoundary>
-            <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted-foreground">Loading…</div>}>
+            <Suspense fallback={<div className="grid h-full place-items-center text-sm text-muted-foreground">{t("common.loading")}</div>}>
               <Content windowId={win.id} props={win.props} />
             </Suspense>
           </ErrorBoundary>

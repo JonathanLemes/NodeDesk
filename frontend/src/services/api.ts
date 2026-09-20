@@ -1,3 +1,4 @@
+import { useLang } from "@/i18n"
 export class ApiError extends Error {
   status: number
   code: string
@@ -17,7 +18,7 @@ export const onUnauthorized = (fn: Listener) => {
 }
 
 async function request<T>(method: string, url: string, body?: unknown, init?: RequestInit): Promise<T> {
-  const headers: Record<string, string> = {}
+  const headers: Record<string, string> = { "Accept-Language": useLang.getState().lang }
   let payload: BodyInit | undefined
   if (body instanceof Blob || body instanceof ArrayBuffer) {
     payload = body

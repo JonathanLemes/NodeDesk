@@ -9,6 +9,7 @@ import { useSystemInfo } from "@/services/queries"
 import { useMetrics } from "@/stores/metrics"
 import type { Sample } from "@/types/api"
 import { WindowToolbar } from "@/windows/context"
+import { t } from "@/i18n"
 
 type Section = "cpu" | "memory" | "gpu" | "network" | "disk"
 
@@ -18,29 +19,29 @@ const pct = (v: number) => `${v.toFixed(0)}%`
 
 function seriesFor(section: Section, h: Sample[]): Series[] {
   switch (section) {
-    case "cpu": return [{ label: "Utilization", color: "var(--ring-cpu)", values: h.map((s) => s.cpu), max: 100, format: pct }]
-    case "memory": return [{ label: "In use", color: "var(--ring-ram)", values: h.map((s) => s.mem.percent), max: 100, format: pct }]
+    case "cpu": return [{ label: t("monitor.utilization"), color: "var(--ring-cpu)", values: h.map((s) => s.cpu), max: 100, format: pct }]
+    case "memory": return [{ label: t("monitor.in_use"), color: "var(--ring-ram)", values: h.map((s) => s.mem.percent), max: 100, format: pct }]
     case "gpu": return [
-      { label: "Utilization", color: "var(--ring-gpu)", values: h.map((s) => s.gpus[0]?.util ?? 0), max: 100, format: pct },
+      { label: t("monitor.utilization"), color: "var(--ring-gpu)", values: h.map((s) => s.gpus[0]?.util ?? 0), max: 100, format: pct },
       { label: "VRAM", color: "oklch(0.72 0.17 340)", values: h.map((s) => (s.gpus[0]?.memTotal ? (s.gpus[0].memUsed / s.gpus[0].memTotal) * 100 : 0)), max: 100, format: pct },
     ]
     case "network": return [
-      { label: "Download", color: "var(--ring-cpu)", values: h.map((s) => s.net.rx), format: formatRate },
-      { label: "Upload", color: "oklch(0.75 0.16 70)", values: h.map((s) => s.net.tx), format: formatRate },
+      { label: t("monitor.download"), color: "var(--ring-cpu)", values: h.map((s) => s.net.rx), format: formatRate },
+      { label: t("monitor.upload"), color: "oklch(0.75 0.16 70)", values: h.map((s) => s.net.tx), format: formatRate },
     ]
     case "disk": return [
-      { label: "Read", color: "var(--ring-ram)", values: h.map((s) => s.disk.rx), format: formatRate },
-      { label: "Write", color: "oklch(0.7 0.2 25)", values: h.map((s) => s.disk.tx), format: formatRate },
+      { label: t("monitor.read"), color: "var(--ring-ram)", values: h.map((s) => s.disk.rx), format: formatRate },
+      { label: t("monitor.write"), color: "oklch(0.7 0.2 25)", values: h.map((s) => s.disk.tx), format: formatRate },
     ]
   }
 }
 
 const NAV: { id: Section; label: string; icon: LucideIcon; color: string }[] = [
   { id: "cpu", label: "CPU", icon: Cpu, color: "var(--ring-cpu)" },
-  { id: "memory", label: "Memory", icon: MemoryStick, color: "var(--ring-ram)" },
+  { id: "memory", get label() { return t("monitor.memory") }, icon: MemoryStick, color: "var(--ring-ram)" },
   { id: "gpu", label: "GPU", icon: Gauge, color: "var(--ring-gpu)" },
-  { id: "network", label: "Network", icon: Network, color: "oklch(0.75 0.16 70)" },
-  { id: "disk", label: "Disk I/O", icon: HardDrive, color: "oklch(0.7 0.2 25)" },
+  { id: "network", get label() { return t("menubar.network") }, icon: Network, color: "oklch(0.75 0.16 70)" },
+  { id: "disk", get label() { return t("monitor.disk_io") }, icon: HardDrive, color: "oklch(0.7 0.2 25)" },
 ]
 
 function headline(section: Section, s: Sample | null): string {
@@ -79,11 +80,11 @@ export default function MonitorApp(_: DesktopAppProps) {
     <div className="flex h-full">
       <WindowToolbar>
         <Activity className="size-5 text-muted-foreground" />
-        <h2 className="text-[16px] font-semibold">Monitor</h2>
+        <h2 className="text-[16px] font-semibold">{t("app.monitor")}</h2>
         <div className="flex-1" />
         <div className="flex rounded-lg bg-muted p-0.5 text-xs">
           {[60, 300].map((s) => (
-            <button key={s} onClick={() => setSpan(s)} className={cn("rounded-md px-2.5 py-1", span === s ? "bg-background shadow-sm" : "text-muted-foreground")}>{s === 60 ? "1 min" : "5 min"}</button>
+            <button key={s} onClick={() => setSpan(s)} className={cn("rounded-md px-2.5 py-1", span === s ? "bg-background shadow-sm" : "text-muted-foreground")}>{s === 60 ? t("monitor.span_1") : t("monitor.span_5")}</button>
           ))}
         </div>
       </WindowToolbar>
@@ -111,8 +112,8 @@ export default function MonitorApp(_: DesktopAppProps) {
           <h3 className="flex items-center gap-2 text-[22px] font-semibold tracking-tight"><CurrentIcon className="size-5" style={{ color: current.color }} />{current.label}</h3>
           <span className="max-w-[60%] truncate text-xs text-muted-foreground">
             {section === "cpu" && info?.cpuModel}
-            {section === "memory" && info && `${formatBytes(info.memTotal)} installed`}
-            {section === "gpu" && (gpu?.name ?? "No GPU detected")}
+            {section === "memory" && info && t("monitor.installed", { size: formatBytes(info.memTotal) })}
+            {section === "gpu" && (gpu?.name ?? t("monitor.no_gpu"))}
           </span>
         </div>
 
@@ -128,32 +129,32 @@ export default function MonitorApp(_: DesktopAppProps) {
 
         <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3.5 sm:grid-cols-4">
           {section === "cpu" && latest && <>
-            <Stat label="Utilization" value={pct(latest.cpu)} />
-            <Stat label="Load (1/5/15)" value={latest.load.map((l) => l.toFixed(2)).join("  ")} />
-            <Stat label="Threads" value={String(info?.cores ?? latest.cores.length)} />
-            <Stat label="Temperature" value={latest.cpuTemp !== undefined ? `${Math.round(latest.cpuTemp)}°C` : "—"} />
-            <Stat label="Uptime" value={info ? formatDuration(info.uptime) : "—"} />
+            <Stat label={t("monitor.utilization")} value={pct(latest.cpu)} />
+            <Stat label={t("monitor.load")} value={latest.load.map((l) => l.toFixed(2)).join("  ")} />
+            <Stat label={t("monitor.threads")} value={String(info?.cores ?? latest.cores.length)} />
+            <Stat label={t("monitor.temperature")} value={latest.cpuTemp !== undefined ? `${Math.round(latest.cpuTemp)}°C` : "—"} />
+            <Stat label={t("about.uptime")} value={info ? formatDuration(info.uptime) : "—"} />
           </>}
           {section === "memory" && latest && <>
-            <Stat label="In use" value={formatBytes(latest.mem.used)} />
-            <Stat label="Total" value={formatBytes(latest.mem.total)} />
-            <Stat label="Swap used" value={`${formatBytes(latest.swap.used)} / ${formatBytes(latest.swap.total)}`} />
+            <Stat label={t("monitor.in_use")} value={formatBytes(latest.mem.used)} />
+            <Stat label={t("monitor.total")} value={formatBytes(latest.mem.total)} />
+            <Stat label={t("monitor.swap")} value={`${formatBytes(latest.swap.used)} / ${formatBytes(latest.swap.total)}`} />
           </>}
           {section === "gpu" && (gpu ? <>
-            <Stat label="Utilization" value={pct(gpu.util)} />
+            <Stat label={t("monitor.utilization")} value={pct(gpu.util)} />
             <Stat label="VRAM" value={`${formatBytes(gpu.memUsed)} / ${formatBytes(gpu.memTotal)}`} />
-            <Stat label="Temperature" value={gpu.temp !== undefined ? `${Math.round(gpu.temp)}°C` : "—"} />
-            <Stat label="Power" value={gpu.power !== undefined ? `${gpu.power.toFixed(0)} W` : "—"} />
-          </> : <p className="col-span-4 text-sm text-muted-foreground">No supported GPU found. NodeDesk reads NVIDIA cards through NVML and AMD cards through sysfs.</p>)}
+            <Stat label={t("monitor.temperature")} value={gpu.temp !== undefined ? `${Math.round(gpu.temp)}°C` : "—"} />
+            <Stat label={t("monitor.power")} value={gpu.power !== undefined ? `${gpu.power.toFixed(0)} W` : "—"} />
+          </> : <p className="col-span-4 text-sm text-muted-foreground">{t("monitor.no_gpu_desc")}</p>)}
           {section === "network" && latest && <>
-            <Stat label="Download" value={formatRate(latest.net.rx)} />
-            <Stat label="Upload" value={formatRate(latest.net.tx)} />
-            <Stat label="Addresses" value={info?.ips.join(", ") || "—"} />
+            <Stat label={t("monitor.download")} value={formatRate(latest.net.rx)} />
+            <Stat label={t("monitor.upload")} value={formatRate(latest.net.tx)} />
+            <Stat label={t("monitor.addresses")} value={info?.ips.join(", ") || "—"} />
           </>}
           {section === "disk" && latest && <>
-            <Stat label="Read" value={formatRate(latest.disk.rx)} />
-            <Stat label="Write" value={formatRate(latest.disk.tx)} />
-            {Object.entries(latest.devices ?? {}).map(([n, t]) => <Stat key={n} label={n} value={`${formatRate(t.rx)} / ${formatRate(t.tx)}`} />)}
+            <Stat label={t("monitor.read")} value={formatRate(latest.disk.rx)} />
+            <Stat label={t("monitor.write")} value={formatRate(latest.disk.tx)} />
+            {Object.entries(latest.devices ?? {}).map(([n, io]) => <Stat key={n} label={n} value={`${formatRate(io.rx)} / ${formatRate(io.tx)}`} />)}
           </>}
         </dl>
       </main>

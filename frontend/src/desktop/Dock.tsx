@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { useAppMutations, useApps } from "@/services/queries"
 import { useWindows } from "@/stores/windows"
 import { launch } from "@/windows/launch"
+import { t } from "@/i18n"
 
 interface DockItemProps {
   label: string
@@ -26,7 +27,7 @@ function DockItem({ label, icon, active, running, onClick, menu }: DockItemProps
     <button
       onClick={onClick}
       data-dock-item
-      className="group/dock flex w-[76px] shrink-0 origin-bottom flex-col items-center gap-1 outline-none"
+      className="group/dock flex w-[84px] shrink-0 origin-bottom flex-col items-center gap-1 outline-none"
       style={{ transform: "scale(var(--dock-scale, 1))", transition: "transform 0.14s ease-out" }}
     >
       <div className="rounded-[14px] transition-transform duration-150 group-active/dock:scale-95 group-focus-visible/dock:ring-2 group-focus-visible/dock:ring-primary" style={{ filter: "drop-shadow(0 2px 4px oklch(0.2 0.03 265 / 0.3))" }}>
@@ -89,9 +90,9 @@ export function Dock() {
             onClick={() => launch(app.id)}
             menu={
               <>
-                <ContextMenuItem onSelect={() => launch(app.id)}>Open</ContextMenuItem>
+                <ContextMenuItem onSelect={() => launch(app.id)}>{t("common.open")}</ContextMenuItem>
                 {isRunning(app.id) && (
-                  <ContextMenuItem onSelect={() => useWindows.getState().closeApp(app.id)}>Close</ContextMenuItem>
+                  <ContextMenuItem onSelect={() => useWindows.getState().closeApp(app.id)}>{t("window.close")}</ContextMenuItem>
                 )}
               </>
             }
@@ -107,22 +108,22 @@ export function Dock() {
             onClick={() => (a.url ? window.open(resolveUrl(a.url), "_blank", "noopener") : launch("apps", { select: a.id }))}
             menu={
               <>
-                {a.url && <ContextMenuItem onSelect={() => window.open(resolveUrl(a.url), "_blank", "noopener")}>Open</ContextMenuItem>}
-                <ContextMenuItem onSelect={() => launch("apps", { select: a.id })}>Show in Apps</ContextMenuItem>
+                {a.url && <ContextMenuItem onSelect={() => window.open(resolveUrl(a.url), "_blank", "noopener")}>{t("common.open")}</ContextMenuItem>}
+                <ContextMenuItem onSelect={() => launch("apps", { select: a.id })}>{t("app.show_in_apps")}</ContextMenuItem>
                 {(a.containers.length > 0 || a.systemdUnits.length > 0) && (
                   <>
                     <ContextMenuSeparator />
                     {a.status === "running" ? (
-                      <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "stop" })}>Stop</ContextMenuItem>
+                      <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "stop" })}>{t("action.stop")}</ContextMenuItem>
                     ) : (
-                      <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "start" })}>Start</ContextMenuItem>
+                      <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "start" })}>{t("action.start")}</ContextMenuItem>
                     )}
-                    <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "restart" })}>Restart</ContextMenuItem>
+                    <ContextMenuItem onSelect={() => action.mutate({ id: a.id, action: "restart" })}>{t("action.restart")}</ContextMenuItem>
                   </>
                 )}
                 <ContextMenuSeparator />
-                <ContextMenuItem onSelect={() => update.mutate({ ...a, desktop: !a.desktop })}>{a.desktop ? "Remove from Desktop" : "Add to Desktop"}</ContextMenuItem>
-                <ContextMenuItem onSelect={() => update.mutate({ ...a, favorite: false })}>Remove from Dock</ContextMenuItem>
+                <ContextMenuItem onSelect={() => update.mutate({ ...a, desktop: !a.desktop })}>{a.desktop ? t("app.remove_from_desktop") : t("app.add_to_desktop")}</ContextMenuItem>
+                <ContextMenuItem onSelect={() => update.mutate({ ...a, favorite: false })}>{t("app.remove_from_dock")}</ContextMenuItem>
               </>
             }
           />
@@ -130,7 +131,7 @@ export function Dock() {
 
         <Divider />
         <DockItem
-          label="Trash"
+          label={t("app.trash")}
           icon={
             <IconTile size={size} background="linear-gradient(160deg, oklch(0.95 0.005 265 / 0.9), oklch(0.8 0.01 265 / 0.9))" className="text-foreground/60">
               <Trash2 size={size * 0.5} strokeWidth={1.4} />

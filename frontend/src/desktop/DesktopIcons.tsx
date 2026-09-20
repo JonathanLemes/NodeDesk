@@ -7,6 +7,7 @@ import { resolveUrl } from "@/lib/format"
 import { useAppMutations, useApps } from "@/services/queries"
 import type { ServiceAppView } from "@/types/api"
 import { launch, MENUBAR_HEIGHT } from "@/windows/launch"
+import { t } from "@/i18n"
 
 const CELL_W = 104
 const CELL_H = 112
@@ -93,7 +94,7 @@ function DesktopIcon({ app, x, y }: { app: ServiceAppView; x: number; y: number 
           onClick={() => { if (!moved.current) open() }}
           className="group pointer-events-auto absolute flex cursor-default flex-col items-center gap-1.5 rounded-xl px-1 py-1.5 select-none hover:bg-white/10 active:bg-white/15"
           style={{ left: cx, top: cy, width: CELL_W, opacity: dragging ? 0.85 : 1 }}
-          title={app.url ? `Open ${app.name} in a new tab` : app.name}
+          title={app.url ? t("desktop.icon_title", { name: app.name }) : app.name}
         >
           <div className="relative" style={{ filter: "drop-shadow(0 3px 6px oklch(0.2 0.03 265 / 0.35))" }}>
             <AppIcon name={app.name} icon={app.icon} size={ICON} />
@@ -105,19 +106,19 @@ function DesktopIcon({ app, x, y }: { app: ServiceAppView; x: number; y: number 
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-48">
-        <ContextMenuItem onSelect={open}>{app.url ? "Open in New Tab" : "Show in Apps"}</ContextMenuItem>
+        <ContextMenuItem onSelect={open}>{app.url ? t("app.open_new_tab") : t("app.show_in_apps")}</ContextMenuItem>
         {controllable && (
           <>
             <ContextMenuSeparator />
             {app.status === "running" || app.status === "partial"
-              ? <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "stop" })}>Stop</ContextMenuItem>
-              : <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "start" })}>Start</ContextMenuItem>}
-            <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "restart" })}>Restart</ContextMenuItem>
+              ? <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "stop" })}>{t("action.stop")}</ContextMenuItem>
+              : <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "start" })}>{t("action.start")}</ContextMenuItem>}
+            <ContextMenuItem onSelect={() => action.mutate({ id: app.id, action: "restart" })}>{t("action.restart")}</ContextMenuItem>
           </>
         )}
         <ContextMenuSeparator />
-        <ContextMenuItem onSelect={() => launch("apps", { select: app.id })}>Show in Apps</ContextMenuItem>
-        <ContextMenuItem onSelect={() => update.mutate({ ...app, desktop: false })}>Remove from Desktop</ContextMenuItem>
+        <ContextMenuItem onSelect={() => launch("apps", { select: app.id })}>{t("app.show_in_apps")}</ContextMenuItem>
+        <ContextMenuItem onSelect={() => update.mutate({ ...app, desktop: false })}>{t("app.remove_from_desktop")}</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   )

@@ -2,10 +2,13 @@ import { lazy } from "react"
 
 import { StorageIcon } from "@/apps/icons"
 import { defineDesktopApp } from "@/apps/sdk"
+import { t } from "@/i18n"
 
 export default defineDesktopApp({
   id: "storage",
-  title: "Storage",
+  get title() {
+    return t("app.storage")
+  },
   icon: (size) => <StorageIcon size={size} />,
   component: lazy(() => import("./StorageApp")),
   defaultSize: { w: 820, h: 560 },

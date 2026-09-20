@@ -2,10 +2,13 @@ import { lazy } from "react"
 
 import { FilesIcon } from "@/apps/icons"
 import { defineDesktopApp } from "@/apps/sdk"
+import { t } from "@/i18n"
 
 export default defineDesktopApp({
   id: "files",
-  title: "Files",
+  get title() {
+    return t("app.files")
+  },
   icon: (size) => <FilesIcon size={size} />,
   component: lazy(() => import("./FilesApp")),
   defaultSize: { w: 980, h: 620 },

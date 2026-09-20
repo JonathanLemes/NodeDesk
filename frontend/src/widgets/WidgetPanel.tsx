@@ -1,5 +1,6 @@
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
+import { t } from "@/i18n"
 
 interface WidgetPanelProps {
   icon: LucideIcon
@@ -23,7 +24,7 @@ export function WidgetPanel({ icon: Icon, title, trailing, onOpen, children }: W
           {onOpen && (
             <button
               onClick={onOpen}
-              aria-label={`Open ${title}`}
+              aria-label={t("widgets.open", { title })}
               className="-mr-1 rounded-md p-1 text-foreground/70 transition-colors hover:bg-foreground/8 hover:text-foreground"
             >
               <ChevronRight className="size-[18px]" />

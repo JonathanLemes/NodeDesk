@@ -8,6 +8,7 @@ import { Wallpaper } from "@/desktop/wallpapers"
 import { api } from "@/services/api"
 import { errorMessage, keys, useSettings } from "@/services/queries"
 import type { AuthStatus } from "@/types/api"
+import { t } from "@/i18n"
 
 export function LoginScreen({ status }: { status: AuthStatus }) {
   const qc = useQueryClient()
@@ -42,10 +43,10 @@ export function LoginScreen({ status }: { status: AuthStatus }) {
         <div className="mb-1 grid size-24 place-items-center rounded-full bg-white/20 shadow-lg ring-1 ring-white/30 backdrop-blur-xl">
           <Logo size={46} />
         </div>
-        <h1 className="text-xl font-semibold drop-shadow">{setup ? "Set up NodeDesk" : "NodeDesk"}</h1>
-        {setup && <p className="max-w-xs text-center text-[13px] text-white/80">Enter the one-time setup code printed in the server log, then choose an admin password.</p>}
+        <h1 className="text-xl font-semibold drop-shadow">{setup ? t("login.setup_title") : t("app.name")}</h1>
+        {setup && <p className="max-w-xs text-center text-[13px] text-white/80">{t("login.setup_hint")}</p>}
         {setup && (
-          <Input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="Setup code" autoComplete="off"
+          <Input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("login.setup_code")} autoComplete="off"
             className="h-9 w-64 rounded-full border-white/30 bg-white/20 px-4 text-white placeholder:text-white/60" />
         )}
         <div className="relative">
@@ -54,11 +55,11 @@ export function LoginScreen({ status }: { status: AuthStatus }) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={setup ? "New password (8+ characters)" : "Password"}
+            placeholder={setup ? t("login.new_password") : t("login.password")}
             autoComplete={setup ? "new-password" : "current-password"}
             className="h-9 w-64 rounded-full border-white/30 bg-white/20 pr-10 pl-4 text-white placeholder:text-white/60"
           />
-          <button type="submit" disabled={busy || !password} aria-label="Sign in" className="absolute top-1/2 right-1 grid size-7 -translate-y-1/2 place-items-center rounded-full bg-white/25 hover:bg-white/40 disabled:opacity-40">
+          <button type="submit" disabled={busy || !password} aria-label={t("login.sign_in")} className="absolute top-1/2 right-1 grid size-7 -translate-y-1/2 place-items-center rounded-full bg-white/25 hover:bg-white/40 disabled:opacity-40">
             {busy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
           </button>
         </div>

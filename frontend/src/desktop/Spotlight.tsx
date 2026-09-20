@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { useApps } from "@/services/queries"
 import { useUi } from "@/stores/ui"
 import { launch } from "@/windows/launch"
+import { t } from "@/i18n"
 
 interface Result { id: string; label: string; hint: string; icon: ReactNode; run: () => void }
 
@@ -31,16 +32,16 @@ export function Spotlight() {
   }, [open])
 
   const all = useMemo<Result[]>(() => {
-    const list: Result[] = dockApps.map((a) => ({ id: `app-${a.id}`, label: a.title, hint: "Application", icon: a.icon(30), run: () => launch(a.id) }))
+    const list: Result[] = dockApps.map((a) => ({ id: `app-${a.id}`, label: a.title, hint: t("spotlight.application"), icon: a.icon(30), run: () => launch(a.id) }))
     for (const a of apps ?? []) {
       list.push({
-        id: `svc-${a.id}`, label: a.name, hint: a.url ? "Open service" : "Service", icon: <AppIcon name={a.name} icon={a.icon} size={30} />,
+        id: `svc-${a.id}`, label: a.name, hint: a.url ? t("spotlight.open_service") : t("spotlight.service"), icon: <AppIcon name={a.name} icon={a.icon} size={30} />,
         run: () => (a.url ? window.open(resolveUrl(a.url), "_blank", "noopener") : launch("apps", { select: a.id })),
       })
     }
     list.push(
-      { id: "act-theme", label: theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode", hint: "Action", icon: <Moon className="size-6 text-muted-foreground" />, run: () => setTheme(theme === "dark" ? "light" : "dark") },
-      { id: "act-widgets", label: "Edit Widgets", hint: "Action", icon: <PencilRuler className="size-6 text-muted-foreground" />, run: () => useUi.getState().setEditingWidgets(true) },
+      { id: "act-theme", label: theme === "dark" ? t("spotlight.to_light") : t("spotlight.to_dark"), hint: t("spotlight.action"), icon: <Moon className="size-6 text-muted-foreground" />, run: () => setTheme(theme === "dark" ? "light" : "dark") },
+      { id: "act-widgets", label: t("menubar.edit_widgets_title"), hint: t("spotlight.action"), icon: <PencilRuler className="size-6 text-muted-foreground" />, run: () => useUi.getState().setEditingWidgets(true) },
     )
     return list
   }, [apps, theme, setTheme])
@@ -75,12 +76,12 @@ export function Spotlight() {
             ref={input}
             value={query}
             onChange={(e) => { setQuery(e.target.value); setActive(0) }}
-            placeholder="Search apps and services"
+            placeholder={t("spotlight.placeholder")}
             className="h-14 flex-1 bg-transparent text-[17px] outline-none placeholder:text-muted-foreground"
           />
         </div>
         <ul className="max-h-[340px] overflow-y-auto p-2">
-          {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted-foreground">No results</li>}
+          {results.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted-foreground">{t("common.no_results")}</li>}
           {results.map((r, i) => (
             <li key={r.id}>
               <button

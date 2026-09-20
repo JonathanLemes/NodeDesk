@@ -7,6 +7,7 @@ import type {
   FileEntry, FileInfo, FileListing, FileRef, FileRoot, SearchResult, ServiceApp, ServiceAppView, Settings,
   Smart, StorageOverview, SystemInfo, TextFile, TrashItem, WidgetLayout,
 } from "@/types/api"
+import { t } from "@/i18n"
 
 export const keys = {
   auth: ["auth"] as const,
@@ -26,7 +27,7 @@ export const keys = {
 }
 
 export function errorMessage(e: unknown): string {
-  return e instanceof Error ? e.message : "Something went wrong"
+  return e instanceof Error ? e.message : t("error.generic")
 }
 
 // ---------------------------------------------------------------- auth

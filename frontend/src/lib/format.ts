@@ -1,10 +1,17 @@
+import { locale } from "@/i18n"
+
 const UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
+
+/** Locale-aware fixed-decimals number (decimal comma in Portuguese). */
+export function num(n: number, digits = 0): string {
+  return n.toLocaleString(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits })
+}
 
 export function formatBytes(n: number, digits = 1): string {
   if (!Number.isFinite(n) || n <= 0) return "0 B"
   const i = Math.min(Math.floor(Math.log(n) / Math.log(1000)), UNITS.length - 1)
   const v = n / 1000 ** i
-  return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(digits)} ${UNITS[i]}`
+  return `${num(v, v >= 100 || i === 0 ? 0 : digits)} ${UNITS[i]}`
 }
 
 /** Compact capacity like "312 GB / 1 TB" building blocks. */
@@ -12,7 +19,7 @@ export function formatCapacity(n: number): string {
   if (n <= 0) return "0 B"
   const i = Math.min(Math.floor(Math.log(n) / Math.log(1000)), UNITS.length - 1)
   const v = n / 1000 ** i
-  return `${v >= 10 || Number.isInteger(v) ? Math.round(v) : v.toFixed(1)} ${UNITS[i]}`
+  return `${num(v, v >= 10 || Number.isInteger(v) ? 0 : 1)} ${UNITS[i]}`
 }
 
 export function formatRate(bytesPerSec: number): string {
@@ -20,11 +27,11 @@ export function formatRate(bytesPerSec: number): string {
 }
 
 export function formatPercent(n: number, digits = 0): string {
-  return `${n.toFixed(digits)}%`
+  return `${num(n, digits)}%`
 }
 
 export function formatDate(ms: number, opts?: Intl.DateTimeFormatOptions): string {
-  return new Date(ms).toLocaleString(undefined, opts ?? { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+  return new Date(ms).toLocaleString(locale(), opts ?? { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
 }
 
 export function formatDuration(seconds: number): string {
@@ -34,14 +41,6 @@ export function formatDuration(seconds: number): string {
   if (d > 0) return `${d}d ${h}h`
   if (h > 0) return `${h}h ${m}m`
   return `${m}m`
-}
-
-export function relativeTime(unixSeconds: number): string {
-  const diff = Date.now() / 1000 - unixSeconds
-  if (diff < 60) return "just now"
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} h ago`
-  return `${Math.floor(diff / 86400)} d ago`
 }
 
 export function initials(name: string): string {

@@ -15,6 +15,7 @@ import { useContainerAction, useContainers, useContainerStats, useDockerStatus, 
 import { useWindows } from "@/stores/windows"
 import type { Container, Port } from "@/types/api"
 import { useWindowContext, WindowToolbar } from "@/windows/context"
+import { t } from "@/i18n"
 
 type Filter = "all" | "running" | "stopped"
 
@@ -51,8 +52,8 @@ export default function DockerApp(_: DesktopAppProps) {
       <Empty className="h-full">
         <EmptyHeader>
           <EmptyMedia variant="icon"><ContainerIcon /></EmptyMedia>
-          <EmptyTitle>Docker isn’t available</EmptyTitle>
-          <EmptyDescription>{status.error ?? "NodeDesk could not reach the Docker daemon."}</EmptyDescription>
+          <EmptyTitle>{t("docker.unavailable")}</EmptyTitle>
+          <EmptyDescription>{status.error ?? t("docker.unreachable")}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     )
@@ -62,32 +63,32 @@ export default function DockerApp(_: DesktopAppProps) {
     <Tabs value={tab} onValueChange={setTab} className="flex h-full flex-col gap-0">
       <WindowToolbar>
         <TabsList className="h-8">
-          <TabsTrigger value="containers">Containers</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
+          <TabsTrigger value="containers">{t("docker.containers")}</TabsTrigger>
+          <TabsTrigger value="images">{t("docker.images")}</TabsTrigger>
         </TabsList>
         <span className="ml-2 hidden text-[12.5px] text-muted-foreground sm:inline">
-          {status ? `${status.running} running · ${status.total} total` : ""}
+          {status ? t("docker.summary", { running: status.running, total: status.total }) : ""}
         </span>
         <div className="flex-1" />
         <div className="relative w-48">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter" className="h-8 bg-muted/50 pl-8 text-[13px]" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("docker.filter")} className="h-8 bg-muted/50 pl-8 text-[13px]" />
         </div>
-        <Button variant="ghost" size="icon" aria-label="Refresh" onClick={() => refetch()}><RefreshCw className={cn(isFetching && "animate-spin")} /></Button>
+        <Button variant="ghost" size="icon" aria-label={t("common.refresh")} onClick={() => refetch()}><RefreshCw className={cn(isFetching && "animate-spin")} /></Button>
       </WindowToolbar>
 
       <TabsContent value="containers" className="m-0 flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center gap-2 border-b border-border/70 px-4 py-2">
             <ToggleGroup type="single" value={filter} onValueChange={(v) => v && setFilter(v as Filter)} size="sm" variant="outline">
-              <ToggleGroupItem value="all" className="px-3">All</ToggleGroupItem>
-              <ToggleGroupItem value="running" className="px-3">Running</ToggleGroupItem>
-              <ToggleGroupItem value="stopped" className="px-3">Stopped</ToggleGroupItem>
+              <ToggleGroupItem value="all" className="px-3">{t("docker.all")}</ToggleGroupItem>
+              <ToggleGroupItem value="running" className="px-3">{t("status.running")}</ToggleGroupItem>
+              <ToggleGroupItem value="stopped" className="px-3">{t("status.stopped")}</ToggleGroupItem>
             </ToggleGroup>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-2">
-            {isLoading && <p className="p-6 text-center text-sm text-muted-foreground">Loading…</p>}
-            {!isLoading && list.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">No containers match.</p>}
+            {isLoading && <p className="p-6 text-center text-sm text-muted-foreground">{t("common.loading")}</p>}
+            {!isLoading && list.length === 0 && <p className="p-10 text-center text-sm text-muted-foreground">{t("docker.no_match")}</p>}
             {list.map((c) => {
               const st = stats?.[c.id]
               const running = c.state === "running"
@@ -112,11 +113,11 @@ export default function DockerApp(_: DesktopAppProps) {
                   <div className="flex w-[84px] shrink-0 justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
                     {running ? (
                       <>
-                        <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label="Restart" title="Restart" onClick={() => action.mutate({ id: c.id, action: "restart" })}><RotateCw className={cn(busy(c.id) && "animate-spin")} /></Button>
-                        <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label="Stop" title="Stop" onClick={() => action.mutate({ id: c.id, action: "stop" })}><Square /></Button>
+                        <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label={t("action.restart")} title={t("action.restart")} onClick={() => action.mutate({ id: c.id, action: "restart" })}><RotateCw className={cn(busy(c.id) && "animate-spin")} /></Button>
+                        <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label={t("action.stop")} title={t("action.stop")} onClick={() => action.mutate({ id: c.id, action: "stop" })}><Square /></Button>
                       </>
                     ) : (
-                      <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label="Start" title="Start" onClick={() => action.mutate({ id: c.id, action: "start" })}><Play /></Button>
+                      <Button variant="ghost" size="icon-sm" disabled={busy(c.id)} aria-label={t("action.start")} title={t("action.start")} onClick={() => action.mutate({ id: c.id, action: "start" })}><Play /></Button>
                     )}
                   </div>
                 </div>
@@ -130,12 +131,12 @@ export default function DockerApp(_: DesktopAppProps) {
             <h3 className="truncate text-[15px] font-semibold">{selected.name}</h3>
             <p className="truncate text-xs text-muted-foreground">{selected.image}</p>
             <dl className="mt-3 grid grid-cols-[4.5rem_1fr] gap-x-2 gap-y-1 text-[12.5px]">
-              <dt className="text-muted-foreground">State</dt><dd>{selected.status}{selected.health && ` (${selected.health})`}</dd>
-              <dt className="text-muted-foreground">Created</dt><dd>{formatDate(selected.created * 1000)}</dd>
-              {selected.project && <><dt className="text-muted-foreground">Stack</dt><dd>{selected.project}</dd></>}
+              <dt className="text-muted-foreground">{t("docker.state")}</dt><dd>{selected.status}{selected.health && ` (${selected.health})`}</dd>
+              <dt className="text-muted-foreground">{t("docker.created")}</dt><dd>{formatDate(selected.created * 1000)}</dd>
+              {selected.project && <><dt className="text-muted-foreground">{t("docker.stack")}</dt><dd>{selected.project}</dd></>}
               {selected.ports.length > 0 && (
                 <>
-                  <dt className="text-muted-foreground">Ports</dt>
+                  <dt className="text-muted-foreground">{t("docker.ports")}</dt>
                   <dd className="flex flex-wrap gap-1">
                     {selected.ports.map((p) => p.public
                       ? <a key={portKey(p)} className="font-mono text-primary hover:underline" target="_blank" rel="noopener noreferrer" href={`http://${location.hostname}:${p.public}`}>{portLabel(p)}/{p.type}</a>
@@ -165,7 +166,7 @@ export default function DockerApp(_: DesktopAppProps) {
               <p className="truncate text-[13.5px] font-medium">{im.tags[0] ?? "<untagged>"}{im.tags.length > 1 && <span className="ml-1 text-xs text-muted-foreground">+{im.tags.length - 1}</span>}</p>
               <p className="font-mono text-[11px] text-muted-foreground">{im.id}</p>
             </div>
-            <span className="w-24 text-right text-xs text-muted-foreground">{im.containers > 0 ? `${im.containers} in use` : "unused"}</span>
+            <span className="w-24 text-right text-xs text-muted-foreground">{im.containers > 0 ? t("docker.in_use", { count: im.containers }) : t("docker.unused")}</span>
             <span className="w-20 text-right text-xs tabular-nums text-muted-foreground">{formatBytes(im.size)}</span>
             <span className="w-24 text-right text-xs text-muted-foreground">{formatDate(im.created * 1000, { month: "short", day: "numeric", year: "numeric" })}</span>
           </div>

@@ -6,6 +6,7 @@ Thanks for helping! NodeDesk is small on purpose. Before a big change, open an i
 
 - **Design first.** UI changes should stay faithful to `examples/design.png`: few elements, calm, desktop-like. No dashboards full of cards.
 - **Light and safe.** No new services, no polling loops, no shell-outs, no generic execution endpoints. See [security](docs/security.md).
+- **No hard-coded UI text.** Add strings to both `frontend/src/i18n/en.ts` and `pt.ts` ([guide](docs/i18n.md)).
 - Keep changes focused and files small; match the surrounding style.
 
 ## Workflow
@@ -19,4 +20,4 @@ Thanks for helping! NodeDesk is small on purpose. Before a big change, open an i
 
 ## Good first contributions
 
-New widgets ([guide](docs/widgets.md)), icons for popular self-hosted apps (`components/AppIcon.tsx`), wallpapers, translations, and docs.
+New widgets ([guide](docs/widgets.md)), icons for popular self-hosted apps (`components/AppIcon.tsx`), wallpapers, translations ([guide](docs/i18n.md)), and docs.
