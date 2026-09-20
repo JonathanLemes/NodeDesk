@@ -18,6 +18,7 @@ import (
 	"github.com/JonathanLemes/nodedesk/backend/internal/settings"
 	"github.com/JonathanLemes/nodedesk/backend/internal/storage"
 	"github.com/JonathanLemes/nodedesk/backend/internal/system"
+	"github.com/JonathanLemes/nodedesk/backend/internal/terminal"
 	"github.com/JonathanLemes/nodedesk/backend/internal/widgets"
 )
 
@@ -33,7 +34,8 @@ type Deps struct {
 	Widgets  *widgets.Store
 	Files    *files.Manager
 	Storage  *storage.Service
-	Web      fs.FS // built frontend (may be empty in development)
+	Terminal *terminal.Manager // nil when the terminal is disabled
+	Web      fs.FS             // built frontend (may be empty in development)
 	Version  string
 }
 
@@ -46,7 +48,12 @@ func New(d Deps) *Server {
 	return &Server{Deps: d, events: newEventHub(d.Docker)}
 }
 
-func (s *Server) Close() { s.events.close() }
+func (s *Server) Close() {
+	s.events.close()
+	if s.Terminal != nil {
+		s.Terminal.Close()
+	}
+}
 
 func (s *Server) Handler() http.Handler {
 	r := chi.NewRouter()
@@ -74,6 +81,7 @@ func (s *Server) Handler() http.Handler {
 			r.Route("/docker", s.dockerRoutes)
 			r.Route("/files", s.fileRoutes)
 			r.Route("/storage", s.storageRoutes)
+			r.Route("/terminal", s.terminalRoutes)
 			r.Get("/audit", s.listAudit)
 		})
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -18,7 +19,11 @@ type Config struct {
 	AdminPassword string // seeds the admin account on first run
 	AuthDisabled  bool   // development only
 	SecureCookies bool
-	SeedRoots     []Root // used only when no root is stored yet
+	// Terminal app: a shell running as the server's user (see docs/security.md).
+	TerminalEnabled   bool
+	TerminalShell     string        // empty = $SHELL
+	TerminalDetachTTL time.Duration // how long a shell survives without a connected browser
+	SeedRoots         []Root        // used only when no root is stored yet
 }
 
 type Root struct {
@@ -33,7 +38,15 @@ func Load() (*Config, error) {
 		AdminPassword: os.Getenv("NODEDESK_ADMIN_PASSWORD"),
 		AuthDisabled:  os.Getenv("NODEDESK_AUTH") == "disabled",
 		SecureCookies: os.Getenv("NODEDESK_SECURE_COOKIES") == "true",
+
+		TerminalEnabled: os.Getenv("NODEDESK_TERMINAL") != "disabled",
+		TerminalShell:   os.Getenv("NODEDESK_TERMINAL_SHELL"),
 	}
+	ttl, err := time.ParseDuration(env("NODEDESK_TERMINAL_DETACH_TTL", "5m"))
+	if err != nil || ttl <= 0 {
+		return nil, fmt.Errorf("NODEDESK_TERMINAL_DETACH_TTL: want a positive duration such as 5m")
+	}
+	c.TerminalDetachTTL = ttl
 
 	dataDir := os.Getenv("NODEDESK_DATA_DIR")
 	if dataDir == "" {

@@ -37,6 +37,9 @@ func Localize(r *http.Request, format string, args []any, fallback string) strin
 }
 
 var catalogPT = map[string]string{
+	"the terminal is disabled on this server":                  "o terminal está desativado neste servidor",
+	"too many terminal sessions":                               "sessões de terminal demais",
+	"terminal session not found":                               "sessão de terminal não encontrada",
 	"already configured":                                       "já configurado",
 	"already exists":                                           "já existe",
 	"analysis not found":                                       "análise não encontrada",

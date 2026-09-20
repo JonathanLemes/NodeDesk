@@ -25,6 +25,7 @@ import (
 	"github.com/JonathanLemes/nodedesk/backend/internal/settings"
 	"github.com/JonathanLemes/nodedesk/backend/internal/storage"
 	"github.com/JonathanLemes/nodedesk/backend/internal/system"
+	"github.com/JonathanLemes/nodedesk/backend/internal/terminal"
 	"github.com/JonathanLemes/nodedesk/backend/internal/widgets"
 	"github.com/JonathanLemes/nodedesk/backend/web"
 )
@@ -79,10 +80,15 @@ func run() error {
 	dockerSvc := docker.New(cfg.DockerHost)
 	appSvc := apps.NewService(apps.NewStore(db), dockerSvc)
 
+	var term *terminal.Manager
+	if cfg.TerminalEnabled {
+		term = terminal.NewManager(cfg.TerminalShell, cfg.TerminalDetachTTL)
+	}
+
 	srv := api.New(api.Deps{
 		Config: cfg, Auth: authSvc, Audit: audit.New(db), Settings: settingsStore,
 		System: sys, Docker: dockerSvc, Apps: appSvc, Widgets: widgets.NewStore(db, settingsStore),
-		Files: fileMgr, Storage: storage.New(), Web: web.FS(), Version: version,
+		Files: fileMgr, Storage: storage.New(), Terminal: term, Web: web.FS(), Version: version,
 	})
 
 	httpSrv := &http.Server{

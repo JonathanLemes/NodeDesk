@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -37,10 +38,21 @@ func securityHeaders(next http.Handler) http.Handler {
 			// App shell only. /api/files/raw sets its own, stricter policy.
 			h.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data: blob: http: https:; "+
 				"style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob:; "+
-				"connect-src 'self'; frame-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'")
+				"connect-src 'self'"+wsSources(r.Host)+"; frame-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'self'")
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+var safeHost = regexp.MustCompile(`^[A-Za-z0-9.\-:\[\]]+$`)
+
+// wsSources lists this host's WebSocket origins explicitly: some browsers do not let 'self'
+// match ws:/wss: (the terminal connects over a WebSocket).
+func wsSources(host string) string {
+	if !safeHost.MatchString(host) {
+		return ""
+	}
+	return " ws://" + host + " wss://" + host
 }
 
 func noStore(next http.Handler) http.Handler {

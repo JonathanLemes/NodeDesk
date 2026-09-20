@@ -4,8 +4,10 @@ go 1.26.0
 
 require (
 	github.com/NVIDIA/go-nvml v0.13.4-0
+	github.com/coder/websocket v1.8.15
 	github.com/containerd/errdefs v1.0.0
 	github.com/coreos/go-systemd/v22 v22.7.0
+	github.com/creack/pty v1.1.24
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/moby/moby/api v1.56.0
 	github.com/moby/moby/client v0.6.0

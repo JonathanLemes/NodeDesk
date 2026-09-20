@@ -12,8 +12,8 @@ EnvironmentFile=-/etc/nodedesk/nodedesk.env
 ExecStart=/usr/local/bin/nodedesk
 Restart=on-failure
 RestartSec=3
-# Hardening that does not get in the way of the file manager or Docker.
-NoNewPrivileges=true
+# Hardening that does not get in the way of the file manager, Docker or the Terminal app.
+# (No NoNewPrivileges=true: it makes sudo fail inside the terminal, "no new privileges flag is set".)
 PrivateTmp=true
 ProtectKernelModules=true
 ProtectControlGroups=true
