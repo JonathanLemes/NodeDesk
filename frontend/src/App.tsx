@@ -1,20 +1,35 @@
-import { Button } from "@/components/ui/button"
+import { useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
+
+import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Desktop } from "@/desktop/LazyDesktop"
+import { LoginScreen } from "@/desktop/LoginScreen"
+import { useTheme } from "@/hooks/useTheme"
+import { onUnauthorized } from "@/services/api"
+import { keys, useAuth } from "@/services/queries"
 
 export function App() {
+  useTheme()
+  const qc = useQueryClient()
+  const { data: auth, isError } = useAuth()
+
+  useEffect(() => {
+    onUnauthorized(() => qc.invalidateQueries({ queryKey: keys.auth }))
+  }, [qc])
+
+  let view = <div className="fixed inset-0 bg-slate-800" />
+  if (isError) {
+    view = <div className="fixed inset-0 grid place-items-center bg-slate-900 text-sm text-white/70">Cannot reach the NodeDesk server.</div>
+  } else if (auth) {
+    view = auth.authenticated ? <Desktop onLock={() => qc.invalidateQueries({ queryKey: keys.auth })} /> : <LoginScreen status={auth} />
+  }
+
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
-      </div>
-    </div>
+    <TooltipProvider delayDuration={300}>
+      {view}
+      <Toaster position="bottom-right" />
+    </TooltipProvider>
   )
 }
 

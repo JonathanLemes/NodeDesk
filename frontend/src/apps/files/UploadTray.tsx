@@ -1,0 +1,31 @@
+import { Check, CircleAlert, Loader2, X } from "lucide-react"
+
+import { Meter } from "@/components/Meter"
+import { formatBytes } from "@/lib/format"
+import { useUploads } from "@/apps/files/uploads"
+
+export function UploadTray() {
+  const items = useUploads((s) => s.items)
+  const clear = useUploads((s) => s.clearFinished)
+  if (items.length === 0) return null
+
+  const total = items.reduce((n, i) => n + i.size, 0)
+  const loaded = items.reduce((n, i) => n + (i.status === "done" ? i.size : i.loaded), 0)
+  const active = items.filter((i) => i.status === "uploading" || i.status === "queued").length
+  const failed = items.filter((i) => i.status === "error")
+
+  return (
+    <div className="glass-strong absolute right-4 bottom-4 z-10 w-72 rounded-xl p-3 text-[13px] animate-[pop-in_0.18s_ease-out]">
+      <div className="flex items-center gap-2">
+        {active > 0 ? <Loader2 className="size-4 animate-spin text-primary" /> : failed.length ? <CircleAlert className="size-4 text-destructive" /> : <Check className="size-4 text-[var(--ok)]" />}
+        <span className="flex-1 font-medium">
+          {active > 0 ? `Uploading ${active} file${active > 1 ? "s" : ""}` : failed.length ? `${failed.length} failed` : "Upload complete"}
+        </span>
+        {active === 0 && <button aria-label="Dismiss" onClick={clear} className="rounded p-0.5 hover:bg-foreground/10"><X className="size-3.5" /></button>}
+      </div>
+      <Meter value={total ? (loaded / total) * 100 : 0} className="mt-2" height={4} />
+      <p className="mt-1.5 text-xs text-muted-foreground tabular-nums">{formatBytes(loaded)} of {formatBytes(total)}</p>
+      {failed.slice(0, 2).map((f) => <p key={f.id} className="mt-1 truncate text-xs text-destructive">{f.name}: {f.error}</p>)}
+    </div>
+  )
+}

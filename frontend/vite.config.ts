@@ -11,4 +11,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    // `make dev` runs the Go backend on :8420; the UI talks to it through this proxy.
+    proxy: { "/api": { target: process.env.NODEDESK_API ?? "http://127.0.0.1:8420", changeOrigin: false } },
+  },
+  build: { chunkSizeWarningLimit: 900 },
 })

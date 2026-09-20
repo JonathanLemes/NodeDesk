@@ -28,6 +28,8 @@ type Entry struct {
 	Symlink  bool   `json:"symlink,omitempty"`
 	Broken   bool   `json:"broken,omitempty"` // symlink that cannot be followed inside the root
 	Editable bool   `json:"editable,omitempty"`
+	// Items is the number of children of a folder (only filled for small listings).
+	Items *int `json:"items,omitempty"`
 }
 
 func newEntry(dirRel, name string, fi fs.FileInfo) Entry {

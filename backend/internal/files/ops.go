@@ -85,7 +85,37 @@ func (m *Manager) List(rootID, p string) (*Listing, error) {
 		out.Entries = append(out.Entries, e)
 	}
 	sortEntries(out.Entries)
+	countChildren(h, rel, out.Entries)
 	return out, nil
+}
+
+// countChildren fills Entry.Items for folders. It costs one open per folder, so it is
+// skipped for very large listings.
+func countChildren(h *os.Root, dir string, es []Entry) {
+	const maxFolders = 150
+	folders := 0
+	for _, e := range es {
+		if e.IsDir {
+			folders++
+		}
+	}
+	if folders > maxFolders {
+		return
+	}
+	for i := range es {
+		if !es[i].IsDir || es[i].Broken {
+			continue
+		}
+		d, err := h.Open(join(dir, es[i].Name))
+		if err != nil {
+			continue
+		}
+		if names, err := d.Readdirnames(-1); err == nil {
+			n := len(names)
+			es[i].Items = &n
+		}
+		d.Close()
+	}
 }
 
 func (m *Manager) Stat(rootID, p string) (Entry, error) {

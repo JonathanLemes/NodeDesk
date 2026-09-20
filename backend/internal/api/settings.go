@@ -19,6 +19,8 @@ var settingValidators = map[string]func(json.RawMessage) bool{
 	"dock.magnify":      isBool,
 	"clock24h":          isBool,
 	"desktop.watermark": isBool,
+	"profile.name":      stringMax(40),
+	"files.favorites":   validFavorites,
 }
 
 func (s *Server) settingsRoutes(r chi.Router) {
@@ -89,4 +91,28 @@ func validWallpaper(raw json.RawMessage) bool {
 	}
 	u, err := url.Parse(v)
 	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
+}
+
+func stringMax(n int) func(json.RawMessage) bool {
+	return func(raw json.RawMessage) bool {
+		var v string
+		return json.Unmarshal(raw, &v) == nil && len(v) <= n
+	}
+}
+
+// Favourite folders shown in the Files sidebar: [{root, path}, ...].
+func validFavorites(raw json.RawMessage) bool {
+	var v []struct {
+		Root string `json:"root"`
+		Path string `json:"path"`
+	}
+	if json.Unmarshal(raw, &v) != nil || len(v) > 50 {
+		return false
+	}
+	for _, f := range v {
+		if f.Root == "" || len(f.Root) > 40 || len(f.Path) > 1024 {
+			return false
+		}
+	}
+	return true
 }
