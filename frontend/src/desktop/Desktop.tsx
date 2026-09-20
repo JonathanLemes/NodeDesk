@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { AboutDialog } from "@/desktop/AboutDialog"
@@ -10,6 +10,7 @@ import { WidgetLayer } from "@/desktop/WidgetLayer"
 import { Wallpaper } from "@/desktop/wallpapers"
 import { useLiveStreams } from "@/hooks/useLiveStreams"
 import { useSetting } from "@/hooks/useSetting"
+import { useShortcuts } from "@/services/shortcuts"
 import { useUi } from "@/stores/ui"
 import { launch } from "@/windows/launch"
 import { WindowLayer } from "@/windows/WindowLayer"
@@ -22,22 +23,12 @@ export function Desktop({ onLock }: { onLock: () => void }) {
   const [aboutOpen, setAboutOpen] = useState(false)
   const editing = useUi((s) => s.editingWidgets)
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const mod = e.ctrlKey || e.metaKey
-      if (mod && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        useUi.getState().setSpotlightOpen(!useUi.getState().spotlightOpen)
-      } else if (mod && e.key === ",") {
-        e.preventDefault()
-        launch("settings")
-      } else if (e.key === "Escape" && useUi.getState().editingWidgets) {
-        useUi.getState().setEditingWidgets(false)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [])
+  useShortcuts({
+    "global.spotlight": () => useUi.getState().setSpotlightOpen(!useUi.getState().spotlightOpen),
+    "global.settings": () => void launch("settings"),
+    "global.terminal": () => void launch("terminal"),
+    "global.exitWidgetEdit": () => (useUi.getState().editingWidgets ? useUi.getState().setEditingWidgets(false) : false),
+  })
 
   return (
     <div className="fixed inset-0 overflow-hidden">

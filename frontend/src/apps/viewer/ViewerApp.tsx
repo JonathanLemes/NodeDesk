@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useAppMenus } from "@/hooks/useAppMenus"
 import { useTheme } from "@/hooks/useTheme"
+import { useShortcut, useShortcutLabels } from "@/services/shortcuts"
 import { ApiError } from "@/services/api"
 import { errorMessage, filesApi, fileUrl, useRoots } from "@/services/queries"
 import { useWindows } from "@/stores/windows"
@@ -31,6 +32,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
   const src = fileUrl.raw(root, path)
   const { data: roots } = useRoots()
   const { resolved } = useTheme()
+  const label = useShortcutLabels()
   const setTitle = useWindows((s) => s.setTitle)
   const { focused } = useWindowContext()
 
@@ -69,9 +71,12 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
     }
   }, [file, readOnly, dirty, root, path, draft])
 
+  // Always claims the key so the browser's "Save page" dialog never opens over an editor.
+  useShortcut("viewer.save", () => void save())
+
   useAppMenus({
     File: [
-      { label: t("common.save"), shortcut: "Ctrl+S", onSelect: () => save(), disabled: !dirty || readOnly },
+      { label: t("common.save"), shortcut: label("viewer.save"), onSelect: () => save(), disabled: !dirty || readOnly },
       { label: t("viewer.reload_disk"), onSelect: load, disabled: !isText },
       { label: t("common.download"), onSelect: () => window.open(fileUrl.download(root, [path])), separatorBefore: true },
     ],
@@ -110,7 +115,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
     case kind === "markdown" && mode === "preview":
       content = (
         <div className="h-full overflow-auto px-8 py-6">
-          <article className="prose-nd mx-auto max-w-3xl text-[14.5px] leading-relaxed">
+          <article data-selectable className="prose-nd mx-auto max-w-3xl text-[14.5px] leading-relaxed">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{draft}</ReactMarkdown>
           </article>
         </div>
@@ -119,7 +124,7 @@ export default function ViewerApp({ windowId, props }: DesktopAppProps) {
     case isText:
       content = (
         <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">{t("viewer.loading_editor")}</div>}>
-          <CodeEditor value={draft} fileName={name} readOnly={readOnly} dark={resolved === "dark"} onChange={setDraft} onSave={() => save()} />
+          <CodeEditor value={draft} fileName={name} readOnly={readOnly} dark={resolved === "dark"} onChange={setDraft} />
         </Suspense>
       )
       break

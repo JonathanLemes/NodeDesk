@@ -26,7 +26,8 @@ import { useIsMobile } from "@/hooks/useIsMobile"
 import { useSetting } from "@/hooks/useSetting"
 import { cn } from "@/lib/utils"
 import { ApiError } from "@/services/api"
-import { errorMessage, filesApi, fileUrl, useListing, useRoots, useSearch } from "@/services/queries"
+import { errorMessage, filesApi, fileUrl, useListing, useRoots, useSearch, useTerminalStatus } from "@/services/queries"
+import { useShortcutLabels, useShortcuts } from "@/services/shortcuts"
 import { useClipboard } from "@/stores/clipboard"
 import { useWindows } from "@/stores/windows"
 import type { FileEntry, FileRef } from "@/types/api"
@@ -52,6 +53,8 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const enqueue = useUploads((s) => s.enqueue)
   const { focused } = useWindowContext()
   const isMobile = useIsMobile()
+  const label = useShortcutLabels()
+  const { data: terminal } = useTerminalStatus()
   const [navOpen, setNavOpen] = useState(false)
 
   const [loc, setLoc] = useState<Location | null>(null)
@@ -115,6 +118,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
     setFwd([loc, ...fwd])
     go(prev, false)
   }
+  const goUp = () => dir && dir.path !== "/" && go({ ...dir, path: parentOf(dir.path) })
   const goForward = () => {
     if (!fwd.length || !loc) return
     const next = fwd[0]
@@ -122,6 +126,9 @@ export default function FilesApp({ props }: DesktopAppProps) {
     setBack([...back, loc])
     go(next, false)
   }
+
+  // On a phone "back" also climbs to the parent folder once the history is used up.
+  const canGoBack = back.length > 0 || (isMobile && !!dir && dir.path !== "/")
 
   // ------------------------------------------------------------------- data
   useEffect(() => {
@@ -224,6 +231,13 @@ export default function FilesApp({ props }: DesktopAppProps) {
     run(() => op(clipboard.items, dest)).then(() => clipboard.mode === "cut" && clipboard.clear())
   }
 
+  /** Opens a terminal in a folder (a file means the folder it lives in). */
+  const openInTerminal = (path: string) => {
+    if (!rootInfo) return
+    const cwd = rootInfo.path.replace(/\/+$/, "") + (path === "/" ? "" : path)
+    launch("terminal", { cwd: cwd || "/", openId: Date.now() })
+  }
+
   const favorite = (e: FileEntry) => {
     if (!root || favorites.some((f) => f.root === root && f.path === e.path)) return
     setFavorites([...favorites, { root, path: e.path }])
@@ -277,32 +291,38 @@ export default function FilesApp({ props }: DesktopAppProps) {
   }
 
   // --------------------------------------------------------------- keyboard
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).tagName === "INPUT") return
-    const mod = e.ctrlKey || e.metaKey
-    if (mod && e.key.toLowerCase() === "a") { e.preventDefault(); setSelection(new Set(entries.map((x) => x.path))) }
-    else if (mod && e.key.toLowerCase() === "c") { e.preventDefault(); copySel("copy") }
-    else if (mod && e.key.toLowerCase() === "x" && !readOnly) { e.preventDefault(); copySel("cut") }
-    else if (mod && e.key.toLowerCase() === "v" && !readOnly) { e.preventDefault(); paste() }
-    else if (e.key === "Enter" && selected.length === 1) openEntry(selected[0])
-    else if (e.key === "F2" && selected.length === 1 && !readOnly) setRenaming(selected[0].path)
-    else if ((e.key === "Delete" || e.key === "Backspace") && selected.length && !readOnly) {
-      e.preventDefault()
-      if (e.shiftKey) setConfirm(selected)
-      else trash(selected)
-    } else if (e.key === "Escape") { setSelection(new Set()); setQuery("") }
-    else if (e.key === "Backspace" && dir && dir.path !== "/") go({ ...dir, path: parentOf(dir.path) })
-    else if (e.key.startsWith("Arrow") && entries.length) {
-      e.preventDefault()
-      const cols = view === "grid" ? (getComputedStyle(scroller.current!.querySelector("[data-files-grid]") ?? document.body).gridTemplateColumns.split(" ").length || 1) : 1
-      const cur = entries.findIndex((x) => x.path === [...selection].pop())
-      const delta = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : e.key === "ArrowDown" ? cols : -cols
-      const next = Math.max(0, Math.min(entries.length - 1, (cur < 0 ? (delta > 0 ? -1 : entries.length) : cur) + delta))
-      setSelection(new Set([entries[next].path]))
-      anchor.current = entries[next].path
-      scroller.current?.querySelector(`[data-path="${CSS.escape(entries[next].path)}"]`)?.scrollIntoView({ block: "nearest" })
-    }
+  // Bindings live in the shortcuts service (Settings → Shortcuts); this only says what each one does.
+  const moveSelection = (dir: "left" | "right" | "up" | "down") => {
+    if (!entries.length) return false
+    const grid = scroller.current?.querySelector("[data-files-grid]")
+    const cols = view === "grid" && grid ? getComputedStyle(grid).gridTemplateColumns.split(" ").length || 1 : 1
+    const cur = entries.findIndex((x) => x.path === [...selection].pop())
+    const delta = dir === "right" ? 1 : dir === "left" ? -1 : dir === "down" ? cols : -cols
+    const next = Math.max(0, Math.min(entries.length - 1, (cur < 0 ? (delta > 0 ? -1 : entries.length) : cur) + delta))
+    setSelection(new Set([entries[next].path]))
+    anchor.current = entries[next].path
+    scroller.current?.querySelector(`[data-path="${CSS.escape(entries[next].path)}"]`)?.scrollIntoView({ block: "nearest" })
   }
+
+  useShortcuts({
+    "files.selectAll": () => setSelection(new Set(entries.map((x) => x.path))),
+    "files.copy": () => (selected.length ? copySel("copy") : false),
+    "files.cut": () => (selected.length && !readOnly ? copySel("cut") : false),
+    "files.paste": () => (!readOnly && clipboard.items.length ? paste() : false),
+    "files.open": () => (selected.length === 1 ? openEntry(selected[0]) : false),
+    "files.rename": () => (selected.length === 1 && !readOnly ? setRenaming(selected[0].path) : false),
+    "files.trash": () => (selected.length && !readOnly ? void trash(selected) : false),
+    "files.deletePermanently": () => (selected.length && !readOnly ? setConfirm(selected) : false),
+    "files.up": () => (dir && dir.path !== "/" ? go({ ...dir, path: parentOf(dir.path) }) : false),
+    "files.clearSelection": () => {
+      setSelection(new Set())
+      setQuery("")
+    },
+    "files.moveLeft": () => moveSelection("left"),
+    "files.moveRight": () => moveSelection("right"),
+    "files.moveUp": () => moveSelection("up"),
+    "files.moveDown": () => moveSelection("down"),
+  }, { within: scroller })
 
   // ------------------------------------------------------------------- menus
   const itemMenu = ({ Item, Sep }: MenuKit): ReactNode => {
@@ -319,6 +339,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         {one && <Item onSelect={() => setRenaming(one.path)} disabled={readOnly}>{t("files.rename")}</Item>}
         <Sep />
         {one?.isDir && <Item onSelect={() => favorite(one)}>{t("files.add_favorite")}</Item>}
+        {one && terminal?.enabled && <Item onSelect={() => openInTerminal(one.isDir ? one.path : parentOf(one.path))}>{t("files.open_in_terminal")}</Item>}
         {one && <Item onSelect={() => root && setInfo({ root, path: one.path })}>{t("files.get_info")}</Item>}
         <Sep />
         <Item variant="destructive" disabled={readOnly} onSelect={() => trash(selected)}>{t("files.move_to_trash")}</Item>
@@ -339,6 +360,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
       <Sep />
       <Item onSelect={() => { const v = !showHidden; setShowHidden(v); lsSet(LS.hidden, v ? "1" : "0") }}>{showHidden ? t("files.hide_hidden") : t("files.show_hidden")}</Item>
       <Item onSelect={refresh}>{t("common.refresh")}</Item>
+      {dir && terminal?.enabled && <Item onSelect={() => openInTerminal(dir.path)}>{t("files.open_in_terminal")}</Item>}
       <Item onSelect={() => dir && setInfo({ root: dir.root, path: dir.path })}>{t("files.get_info")}</Item>
     </>
   )
@@ -353,13 +375,14 @@ export default function FilesApp({ props }: DesktopAppProps) {
       { label: t("files.upload_files"), onSelect: () => fileInput.current?.click(), disabled: readOnly || !dir },
       { label: t("files.rename"), onSelect: () => selected[0] && setRenaming(selected[0].path), disabled: readOnly || selected.length !== 1, separatorBefore: true },
       { label: t("files.get_info"), onSelect: () => root && selected[0] && setInfo({ root, path: selected[0].path }), disabled: selected.length !== 1 },
-      { label: t("files.move_to_trash"), shortcut: "Del", onSelect: () => trash(selected), disabled: readOnly || selected.length === 0, separatorBefore: true },
+      ...(terminal?.enabled ? [{ label: t("files.open_in_terminal"), onSelect: () => openInTerminal(selected.length === 1 ? (selected[0].isDir ? selected[0].path : parentOf(selected[0].path)) : (dir?.path ?? "/")), disabled: !dir }] : []),
+      { label: t("files.move_to_trash"), shortcut: label("files.trash"), onSelect: () => trash(selected), disabled: readOnly || selected.length === 0, separatorBefore: true },
     ],
     Edit: [
-      { label: t("edit.copy"), shortcut: "Ctrl+C", onSelect: () => copySel("copy"), disabled: selected.length === 0 },
-      { label: t("edit.cut"), shortcut: "Ctrl+X", onSelect: () => copySel("cut"), disabled: readOnly || selected.length === 0 },
-      { label: t("edit.paste"), shortcut: "Ctrl+V", onSelect: () => paste(), disabled: readOnly || clipboard.items.length === 0 },
-      { label: t("edit.select_all"), shortcut: "Ctrl+A", onSelect: () => setSelection(new Set(entries.map((e) => e.path))), separatorBefore: true },
+      { label: t("edit.copy"), shortcut: label("files.copy"), onSelect: () => copySel("copy"), disabled: selected.length === 0 },
+      { label: t("edit.cut"), shortcut: label("files.cut"), onSelect: () => copySel("cut"), disabled: readOnly || selected.length === 0 },
+      { label: t("edit.paste"), shortcut: label("files.paste"), onSelect: () => paste(), disabled: readOnly || clipboard.items.length === 0 },
+      { label: t("edit.select_all"), shortcut: label("files.selectAll"), onSelect: () => setSelection(new Set(entries.map((e) => e.path))), separatorBefore: true },
     ],
     View: [
       { label: t("files.as_icons"), checked: view === "grid", onSelect: () => { setView("grid"); lsSet(LS.view, "grid") } },
@@ -393,7 +416,6 @@ export default function FilesApp({ props }: DesktopAppProps) {
         <div
           ref={scroller}
           tabIndex={0}
-          onKeyDown={onKeyDown}
           onClick={() => setSelection(new Set())}
           onContextMenuCapture={(e) => {
             const item = (e.target as HTMLElement).closest<HTMLElement>("[data-path]")
@@ -437,8 +459,9 @@ export default function FilesApp({ props }: DesktopAppProps) {
   return (
     <div className="relative flex h-full overflow-hidden" data-focused={focused}>
       <WindowToolbar>
+        {/* On a phone the app's own ‹ is gone (the ✕ on the right closes it), so this one is the only back. */}
+        <Button variant="ghost" size="icon" aria-label={t("common.back")} disabled={!canGoBack} onClick={() => (back.length ? goBack() : goUp())}><ChevronLeft /></Button>
         <Button variant="ghost" size="icon" className="md:hidden" aria-label={t("files.sidebar")} onClick={() => setNavOpen(true)}><PanelLeft /></Button>
-        <Button variant="ghost" size="icon" aria-label={t("common.back")} disabled={!back.length} onClick={goBack}><ChevronLeft /></Button>
         <Button variant="ghost" size="icon" className="max-md:hidden" aria-label={t("common.forward")} disabled={!fwd.length} onClick={goForward}><ChevronRight /></Button>
         <h2 className="ml-2 min-w-0 truncate text-[16px] font-semibold">{title}</h2>
         <div className="flex-1" />

@@ -23,6 +23,7 @@ var settingValidators = map[string]func(json.RawMessage) bool{
 	"language":          oneOf("auto", "en", "pt"),
 	"mobile.layout":     validHomeLayout,
 	"files.favorites":   validFavorites,
+	"shortcuts":         validShortcuts,
 }
 
 func (s *Server) settingsRoutes(r chi.Router) {
@@ -131,6 +132,25 @@ func validHomeLayout(raw json.RawMessage) bool {
 	for _, k := range append(v.Order, v.Hidden...) {
 		if k == "" || len(k) > 80 {
 			return false
+		}
+	}
+	return true
+}
+
+// Keyboard shortcut overrides: {shortcutId: ["Mod+K", ...]}. An empty list unbinds the shortcut.
+func validShortcuts(raw json.RawMessage) bool {
+	var v map[string][]string
+	if json.Unmarshal(raw, &v) != nil || len(v) > 200 {
+		return false
+	}
+	for id, keys := range v {
+		if id == "" || len(id) > 60 || len(keys) > 4 {
+			return false
+		}
+		for _, k := range keys {
+			if k == "" || len(k) > 40 {
+				return false
+			}
 		}
 	}
 	return true

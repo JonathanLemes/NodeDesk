@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { FolderLock, Info, LayoutDashboard, Lock, Monitor, Moon, ScrollText, Settings2, Sun, Trash2, type LucideIcon } from "lucide-react"
+import { FolderLock, Info, Keyboard, LayoutDashboard, Lock, Monitor, Moon, ScrollText, Settings2, Sun, Trash2, type LucideIcon } from "lucide-react"
 import { useEffect, useState, type ReactNode } from "react"
 import { toast } from "sonner"
 
@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { ShortcutsSettings } from "@/apps/settings/ShortcutsSettings"
 import { WALLPAPERS } from "@/desktop/wallpapers"
 import { useClock24, useSetting } from "@/hooks/useSetting"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { useHomeLayout } from "@/mobile/layout"
 import { useTheme } from "@/hooks/useTheme"
 import { formatBytes, formatDate, formatDuration } from "@/lib/format"
@@ -24,11 +26,12 @@ import { useUi } from "@/stores/ui"
 import { launch } from "@/windows/launch"
 import { LANGUAGES, t, type LangSetting } from "@/i18n"
 
-type Section = "general" | "desktop" | "files" | "security" | "activity" | "about"
+type Section = "general" | "desktop" | "shortcuts" | "files" | "security" | "activity" | "about"
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: "general", get label() { return t("settings.sec_general") }, icon: Settings2 },
   { id: "desktop", get label() { return t("settings.sec_desktop") }, icon: LayoutDashboard },
+  { id: "shortcuts", get label() { return t("settings.sec_shortcuts") }, icon: Keyboard },
   { id: "files", get label() { return t("settings.sec_files") }, icon: FolderLock },
   { id: "security", get label() { return t("settings.sec_security") }, icon: Lock },
   { id: "activity", get label() { return t("settings.sec_activity") }, icon: ScrollText },
@@ -267,6 +270,8 @@ function About() {
 }
 
 export default function SettingsApp({ props }: DesktopAppProps) {
+  // Shortcuts are edited on the web version; a phone has no keyboard to record them with.
+  const sections = useIsMobile() ? SECTIONS.filter((s) => s.id !== "shortcuts") : SECTIONS
   const [section, setSection] = useState<Section>((props.section as Section) ?? "general")
   useEffect(() => {
     if (props.section) setSection(props.section as Section)
@@ -275,16 +280,17 @@ export default function SettingsApp({ props }: DesktopAppProps) {
   return (
     <div className="flex h-full max-md:flex-col">
       <nav className="w-[210px] shrink-0 border-r border-border/70 bg-sidebar p-2.5 max-md:flex max-md:w-full max-md:overflow-x-auto max-md:border-r-0 max-md:border-b max-md:p-2">
-        {SECTIONS.map((s) => (
+        {sections.map((s) => (
           <button key={s.id} onClick={() => setSection(s.id)} className={cn("mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-[7px] text-left text-[13.5px] max-md:mb-0 max-md:w-auto max-md:shrink-0 max-md:whitespace-nowrap", section === s.id ? "bg-primary text-primary-foreground" : "hover:bg-foreground/6")}>
             <s.icon className="size-[17px]" strokeWidth={1.7} />{s.label}
           </button>
         ))}
       </nav>
       <main className="min-w-0 flex-1 overflow-y-auto p-6 max-md:p-4">
-        <h2 className="mb-5 text-[20px] font-semibold tracking-tight">{SECTIONS.find((s) => s.id === section)?.label}</h2>
+        <h2 className="mb-5 text-[20px] font-semibold tracking-tight">{sections.find((s) => s.id === section)?.label}</h2>
         {section === "general" && <General />}
         {section === "desktop" && <Desktop />}
+        {section === "shortcuts" && <ShortcutsSettings />}
         {section === "files" && <FileAccess />}
         {section === "security" && <Security />}
         {section === "activity" && <Activity />}

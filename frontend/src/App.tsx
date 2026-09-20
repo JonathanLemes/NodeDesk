@@ -10,6 +10,7 @@ import { useTheme } from "@/hooks/useTheme"
 import { t, useLang } from "@/i18n"
 import { onUnauthorized } from "@/services/api"
 import { keys, useAuth } from "@/services/queries"
+import { installShortcuts } from "@/services/shortcuts"
 
 const Desktop = lazy(() => import("@/desktop/Desktop").then((m) => ({ default: m.Desktop })))
 const MobileShell = lazy(() => import("@/mobile/MobileShell").then((m) => ({ default: m.MobileShell })))
@@ -21,6 +22,9 @@ export function App() {
   const lang = useLang((s) => s.lang)
   const qc = useQueryClient()
   const { data: auth, isError } = useAuth()
+
+  // One keyboard listener for the whole desktop; bindings come from the shortcuts service.
+  useEffect(() => installShortcuts(), [])
 
   useEffect(() => {
     onUnauthorized(() => qc.invalidateQueries({ queryKey: keys.auth }))

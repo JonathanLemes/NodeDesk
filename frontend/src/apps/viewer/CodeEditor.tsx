@@ -90,16 +90,15 @@ interface CodeEditorProps {
   readOnly: boolean
   dark: boolean
   onChange: (value: string) => void
-  onSave: () => void
 }
 
-export default function CodeEditor({ value, fileName, readOnly, dark, onChange, onSave }: CodeEditorProps) {
+export default function CodeEditor({ value, fileName, readOnly, dark, onChange }: CodeEditorProps) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const theme = useRef(new Compartment())
   const ro = useRef(new Compartment())
-  const cb = useRef({ onChange, onSave })
-  cb.current = { onChange, onSave }
+  const cb = useRef({ onChange })
+  cb.current = { onChange }
 
   useEffect(() => {
     const lang = language(fileName)
@@ -109,10 +108,7 @@ export default function CodeEditor({ value, fileName, readOnly, dark, onChange, 
         doc: value,
         extensions: [
           basicSetup,
-          keymap.of([
-            { key: "Mod-s", preventDefault: true, run: () => { cb.current.onSave(); return true } },
-            indentWithTab, ...defaultKeymap,
-          ]),
+          keymap.of([indentWithTab, ...defaultKeymap]), // saving is a service shortcut (viewer.save)
           lang ?? [],
           theme.current.of([chrome(dark), syntaxHighlighting(dark ? darkStyle : lightStyle)]),
           ro.current.of(EditorState.readOnly.of(readOnly)),
