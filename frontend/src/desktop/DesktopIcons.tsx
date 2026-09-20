@@ -56,15 +56,18 @@ function DesktopIcon({ app, x, y }: { app: ServiceAppView; x: number; y: number 
   const onPointerDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return
     const sx = e.clientX, sy = e.clientY
-    let last = { x: cx, y: cy }
+    // Origin is where the icon actually is on screen, not what the last render computed.
+    const ox = el.current?.offsetLeft ?? cx
+    const oy = el.current?.offsetTop ?? cy
+    let last = { x: ox, y: oy }
     moved.current = false
     const onMove = (ev: PointerEvent) => {
       if (!moved.current && Math.hypot(ev.clientX - sx, ev.clientY - sy) < DRAG_THRESHOLD) return
       moved.current = true
       setDragging(true)
       last = {
-        x: Math.max(0, Math.min(window.innerWidth - CELL_W, cx + ev.clientX - sx)),
-        y: Math.max(MENUBAR_HEIGHT + 4, Math.min(window.innerHeight - CELL_H - 100, cy + ev.clientY - sy)),
+        x: Math.max(0, Math.min(window.innerWidth - CELL_W, ox + ev.clientX - sx)),
+        y: Math.max(MENUBAR_HEIGHT + 4, Math.min(window.innerHeight - CELL_H - 100, oy + ev.clientY - sy)),
       }
       if (el.current) { el.current.style.left = `${last.x}px`; el.current.style.top = `${last.y}px` }
     }
@@ -75,7 +78,7 @@ function DesktopIcon({ app, x, y }: { app: ServiceAppView; x: number; y: number 
       if (!moved.current) return
       const snapped = { x: snap(last.x, CELL_W / 2), y: snap(last.y, CELL_H / 2) }
       if (el.current) { el.current.style.left = `${snapped.x}px`; el.current.style.top = `${snapped.y}px` }
-      move.mutate({ id: app.id, ...snapped }, { onSuccess: () => undefined })
+      move.mutate({ id: app.id, ...snapped })
     }
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)

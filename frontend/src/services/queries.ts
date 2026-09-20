@@ -97,7 +97,17 @@ export function useAppMutations() {
     }),
     move: useMutation({
       mutationFn: (v: { id: string; x: number; y: number }) => api.put(`/api/apps/${v.id}/position`, { x: v.x, y: v.y }),
-      onError,
+      // Update the cache right away: the icon renders from it, so a stale value would make the
+      // next drag start from (and any re-render snap back to) the previous position.
+      onMutate: (v) => {
+        qc.setQueryData<ServiceAppView[]>(keys.apps, (list) =>
+          list?.map((a) => (a.id === v.id ? { ...a, desktopX: v.x, desktopY: v.y } : a)),
+        )
+      },
+      onError: (e) => {
+        onError(e)
+        refresh()
+      },
     }),
     remove: useMutation({ mutationFn: (id: string) => api.del(`/api/apps/${id}`), onSuccess: refresh, onError }),
     action: useMutation({
