@@ -8,9 +8,7 @@
 
 </div>
 
-<p align="center"><img src="examples/design.png" alt="NodeDesk design reference" width="820"></p>
-
-<p align="center"><img src="examples/mobile.png" alt="NodeDesk on a phone: iOS-style home screen" width="300"></p>
+<p align="center"><img src="examples/showcase.png" alt="NodeDesk on the desktop and on a phone" width="900"></p>
 
 ## What you get
 
