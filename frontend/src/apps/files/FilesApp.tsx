@@ -265,6 +265,19 @@ export default function FilesApp({ props }: DesktopAppProps) {
     }
   }
 
+  // Decides whether the context menu is about an item or the folder. A mouse right-click goes through
+  // `contextmenu`, but Radix opens on a touch long-press from its own pointerdown timer without that
+  // event, so the pressed element is remembered and applied when the menu opens.
+  const pressed = useRef<EventTarget | null>(null)
+  const aimMenu = (target: EventTarget) => {
+    pressed.current = null
+    const item = (target as HTMLElement).closest<HTMLElement>("[data-path]")
+    if (item) {
+      setCtx("item")
+      if (!selection.has(item.dataset.path!)) setSelection(new Set([item.dataset.path!]))
+    } else { setCtx("blank"); setSelection(new Set()) }
+  }
+
   const onDragStart = (ev: DragEvent, e: FileEntry) => {
     if (!root) return
     const items = selection.has(e.path) ? refsOf(selected) : [{ root, path: e.path }]
@@ -411,19 +424,14 @@ export default function FilesApp({ props }: DesktopAppProps) {
       <EmptyDescription>{errorMessage(listing.error)}</EmptyDescription>
     </EmptyHeader><Button size="sm" variant="secondary" onClick={() => listing.refetch()}>{t("common.try_again")}</Button></Empty>
   ) : (
-    <ContextMenu>
+    <ContextMenu onOpenChange={(open) => { if (open && pressed.current) aimMenu(pressed.current) }}>
       <ContextMenuTrigger asChild>
         <div
           ref={scroller}
           tabIndex={0}
           onClick={() => setSelection(new Set())}
-          onContextMenuCapture={(e) => {
-            const item = (e.target as HTMLElement).closest<HTMLElement>("[data-path]")
-            if (item) {
-              setCtx("item")
-              if (!selection.has(item.dataset.path!)) setSelection(new Set([item.dataset.path!]))
-            } else { setCtx("blank"); setSelection(new Set()) }
-          }}
+          onContextMenuCapture={(e) => aimMenu(e.target)}
+          onPointerDownCapture={(e) => { if (e.pointerType !== "mouse") pressed.current = e.target }}
           onDragOver={(e) => { if (dir && !readOnly && (e.dataTransfer.types.includes("Files") || e.dataTransfer.types.includes(DND_TYPE))) { e.preventDefault(); setDropActive(true) } }}
           onDragLeave={(e) => { if (e.currentTarget === e.target) setDropActive(false) }}
           onDrop={(e) => dir && !readOnly && handleDrop(e, { root: dir.root, path: dir.path })}
