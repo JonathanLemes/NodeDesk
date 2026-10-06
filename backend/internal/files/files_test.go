@@ -194,6 +194,27 @@ func TestTrashAndRestore(t *testing.T) {
 	}
 }
 
+func TestEmptyTrashAndPermanentDelete(t *testing.T) {
+	m, root := newTestManager(t, false)
+	write(t, filepath.Join(root, "a.txt"), "a")
+	write(t, filepath.Join(root, "b.txt"), "b")
+	if err := m.Delete([]Ref{{Root: "t", Path: "/a.txt"}}, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.PurgeTrash("t", ""); err != nil {
+		t.Fatalf("empty trash: %v", err)
+	}
+	if items, _ := m.Trash(); len(items) != 0 {
+		t.Fatalf("trash not emptied: %+v", items)
+	}
+	if err := m.Delete([]Ref{{Root: "t", Path: "/b.txt"}}, true); err != nil {
+		t.Fatalf("permanent delete: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "b.txt")); !os.IsNotExist(err) {
+		t.Fatal("file should be gone")
+	}
+}
+
 func TestWriteTextDetectsConflicts(t *testing.T) {
 	m, root := newTestManager(t, false)
 	write(t, filepath.Join(root, "c.yml"), "v1")

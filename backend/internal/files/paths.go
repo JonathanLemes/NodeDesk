@@ -74,6 +74,9 @@ func (m *Manager) denied(r Root, rel string) error {
 
 // pathErr maps filesystem errors to API errors without leaking absolute host paths.
 func pathErr(err error) error {
+	if err == nil {
+		return nil
+	}
 	var he *httpx.Error
 	if errors.As(err, &he) {
 		return err
