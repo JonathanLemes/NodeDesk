@@ -273,12 +273,12 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
                 aria-selected={tab.key === activeKey}
                 onMouseDown={(e) => e.button === 0 && setActiveKey(tab.key)}
                 onAuxClick={(e) => e.button === 1 && closeTab(tab.key)}
+                // Like macOS Terminal: tabs split the whole bar up to the "+", title centred, ✕ on the left.
                 className={cn(
-                  "group/tab flex max-w-[220px] min-w-[120px] flex-1 cursor-default items-center gap-2 border-r border-border/70 px-3 select-none",
+                  "group/tab flex min-w-[110px] flex-1 basis-0 cursor-default items-center gap-1 border-r border-border/70 px-2 select-none",
                   tab.key === activeKey ? "bg-window text-foreground" : "text-muted-foreground hover:bg-foreground/5",
                 )}
               >
-                <span className={cn("min-w-0 flex-1 truncate", tab.ended && "line-through opacity-60")}>{shortTitle(tab.title)}</span>
                 <button
                   aria-label={t("terminal.close_tab")}
                   onMouseDown={(e) => e.stopPropagation()}
@@ -287,6 +287,8 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
                 >
                   <X className="size-3" />
                 </button>
+                <span className={cn("min-w-0 flex-1 truncate text-center", tab.ended && "line-through opacity-60")}>{shortTitle(tab.title)}</span>
+                <span className="size-4 shrink-0" />
               </div>
             ))}
           </div>
