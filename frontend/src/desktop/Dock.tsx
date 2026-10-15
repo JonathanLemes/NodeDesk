@@ -133,7 +133,7 @@ export function Dock() {
         <DockItem
           label={t("app.trash")}
           icon={
-            <IconTile size={size} background="linear-gradient(160deg, oklch(0.95 0.005 265 / 0.9), oklch(0.8 0.01 265 / 0.9))" className="text-foreground/60">
+            <IconTile size={size} background="linear-gradient(160deg, oklch(0.95 0.005 265 / 0.9), oklch(0.8 0.01 265 / 0.9))" className="text-[oklch(0.4_0.01_265)]">
               <Trash2 size={size * 0.5} strokeWidth={1.4} />
             </IconTile>
           }
