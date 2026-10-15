@@ -49,6 +49,8 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
   const [fontSize, setFontSize] = useState(() => loadFontSize(touch))
   const [pasteOpen, setPasteOpen] = useState(false)
   const [pasteDraft, setPasteDraft] = useState("")
+  // Selection read when the context menu opens: the menu is built during render, which does not happen on selecting text.
+  const [menuSelection, setMenuSelection] = useState("")
   const [, setModTick] = useState(0)
 
   const stage = useRef<HTMLDivElement>(null)
@@ -169,8 +171,7 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
   }, [focused, activeKey, touch])
 
   // ------------------------------------------------------------- clipboard
-  const copy = async () => {
-    const text = handle()?.getSelection()
+  const copy = async (text = handle()?.getSelection()) => {
     if (text) await copyText(text)
   }
   const paste = async () => {
@@ -232,7 +233,7 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
 
   const menu = (
     <>
-      <ContextMenuItem onSelect={copy} disabled={!handle()?.getSelection()}>{t("edit.copy")}</ContextMenuItem>
+      <ContextMenuItem onSelect={() => void copy(menuSelection)} disabled={!menuSelection}>{t("edit.copy")}</ContextMenuItem>
       <ContextMenuItem onSelect={paste}>{t("edit.paste")}</ContextMenuItem>
       <ContextMenuItem onSelect={() => handle()?.selectAll()}>{t("edit.select_all")}</ContextMenuItem>
       <ContextMenuSeparator />
@@ -315,7 +316,7 @@ export default function TerminalApp({ windowId, props }: DesktopAppProps) {
           return (
             <div key={tab.key} className={cn("absolute inset-0", tab.key !== activeKey && "invisible")}>
               {isMobile ? view : (
-                <ContextMenu>
+                <ContextMenu onOpenChange={(open) => setMenuSelection(open ? (handle()?.getSelection() ?? "") : "")}>
                   <ContextMenuTrigger asChild><div className="h-full">{view}</div></ContextMenuTrigger>
                   <ContextMenuContent className="min-w-48" onCloseAutoFocus={(e) => { e.preventDefault(); handle()?.focus() }}>{menu}</ContextMenuContent>
                 </ContextMenu>
