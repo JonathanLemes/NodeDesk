@@ -19,7 +19,8 @@ function suggestName(path: string, rootName: string): string {
   return raw.replace(/[^\p{L}\p{N} ._'()&-]/gu, "").replace(/^[^\p{L}\p{N}]+/u, "").trim().slice(0, 80) || "Share"
 }
 
-function CopyLine({ value }: { value: string }) {
+/** `wrap` shows long values (commands) on several lines instead of truncating them. */
+function CopyLine({ value, wrap = false }: { value: string; wrap?: boolean }) {
   const [done, setDone] = useState(false)
   const copy = async () => {
     if (await copyText(value)) {
@@ -28,8 +29,8 @@ function CopyLine({ value }: { value: string }) {
     } else toast.error(t("share.copy_failed"))
   }
   return (
-    <div className="flex items-center gap-1.5 rounded-md border bg-muted/50 py-1 pr-1 pl-2.5">
-      <code data-selectable className="min-w-0 flex-1 truncate font-mono text-[12.5px]">{value}</code>
+    <div className="flex min-w-0 items-center gap-1.5 rounded-md border bg-muted/50 py-1 pr-1 pl-2.5">
+      <code data-selectable className={wrap ? "min-w-0 flex-1 font-mono text-[12px] break-all whitespace-pre-wrap" : "min-w-0 flex-1 truncate font-mono text-[12.5px]"}>{value}</code>
       <Button size="icon-xs" variant="ghost" onClick={copy} aria-label={t("edit.copy")}>
         {done ? <Check className="text-emerald-500" /> : <Copy />}
       </Button>
@@ -55,13 +56,13 @@ function AccessGuide({ status, name }: { status: ShareStatus; name: string }) {
   const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent)
 
   return (
-    <Tabs defaultValue={isMac ? "mac" : "windows"} className="gap-3">
+    <Tabs defaultValue={isMac ? "mac" : "windows"} className="min-w-0 gap-3">
       <TabsList className="w-full">
         <TabsTrigger value="windows"><Monitor />Windows</TabsTrigger>
         <TabsTrigger value="mac"><Laptop />macOS</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="windows">
+      <TabsContent value="windows" className="min-w-0">
         <ol className="space-y-3 text-[13px]">
           <Step n={1}><p>{t("share.win_step1")}</p></Step>
           <Step n={2}>
@@ -71,14 +72,14 @@ function AccessGuide({ status, name }: { status: ShareStatus; name: string }) {
           </Step>
           <Step n={3}><p>{t("share.win_step3")}</p></Step>
         </ol>
-        <details className="mt-3 rounded-md border px-3 py-2 text-xs text-muted-foreground">
+        <details className="mt-3 min-w-0 rounded-md border px-3 py-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer font-medium text-foreground">{t("share.win_blocked_title")}</summary>
           <p className="mt-2">{t("share.win_blocked_body")}</p>
-          <div className="mt-2"><CopyLine value="Set-SmbClientConfiguration -EnableInsecureGuestLogons $true -RequireSecuritySignature $false -Force" /></div>
+          <div className="mt-2"><CopyLine value="Set-SmbClientConfiguration -EnableInsecureGuestLogons $true -RequireSecuritySignature $false -Force" wrap /></div>
         </details>
       </TabsContent>
 
-      <TabsContent value="mac">
+      <TabsContent value="mac" className="min-w-0">
         <ol className="space-y-3 text-[13px]">
           <Step n={1}><p>{t("share.mac_step1")}</p></Step>
           <Step n={2}>
@@ -141,7 +142,7 @@ export function ShareDialog({ target, rootName, onClose }: { target: FileRef | n
         {isLoading || !status ? (
           <p className="py-6 text-center text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : current ? (
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 px-3 py-2 text-[13px] text-emerald-700 dark:text-emerald-400">
               <Check className="size-4 shrink-0" />
               <span>{t("share.shared_as", { name: current.name })}</span>
