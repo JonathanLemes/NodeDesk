@@ -5,7 +5,7 @@ import { api, qs } from "@/services/api"
 import type {
   Analysis, AppCandidate, AuditEvent, AuthStatus, Container, ContainerStats, DockerImage, DockerStatus,
   FileEntry, FileInfo, FileListing, FileRef, FileRoot, SearchResult, ServiceApp, ServiceAppView, Settings,
-  Smart, StorageOverview, SystemInfo, TextFile, TrashItem, WidgetLayout,
+  NetworkShare, ShareStatus, Smart, StorageOverview, SystemInfo, TextFile, TrashItem, WidgetLayout,
 } from "@/types/api"
 import { t } from "@/i18n"
 
@@ -224,6 +224,15 @@ export function useRootMutations() {
 }
 
 // ------------------------------------------------------------ storage
+// ------------------------------------------------------ network shares
+export const useShares = (enabled = true) =>
+  useQuery({ queryKey: ["shares"], queryFn: () => api.get<ShareStatus>("/api/shares"), staleTime: 15_000, enabled })
+
+export const sharesApi = {
+  add: (name: string, root: string, path: string) => api.post<NetworkShare>("/api/shares", { name, root, path }),
+  remove: (name: string) => api.del(`/api/shares/${encodeURIComponent(name)}`),
+}
+
 export const useStorage = () =>
   useQuery({ queryKey: keys.storage, queryFn: () => api.get<StorageOverview>("/api/storage"), staleTime: 10_000, refetchInterval: 30_000, refetchIntervalInBackground: false })
 

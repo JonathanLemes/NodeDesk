@@ -257,3 +257,14 @@ export type Settings = Partial<{
   /** Keyboard shortcut overrides by shortcut id; an empty list unbinds it. */
   shortcuts: Record<string, string[]>
 }>
+
+export interface NetworkShare { name: string; root: string; path: string; createdAt: number }
+export interface ShareAddress { ip: string; interface: string; tailscale: boolean }
+export interface ShareStatus {
+  available: boolean
+  reason?: "not_installed" | "not_configured"
+  running: boolean
+  hostname: string
+  addresses: ShareAddress[]
+  shares: NetworkShare[]
+}

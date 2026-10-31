@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { GridView, ListView, DND_TYPE, sortEntries, type Sort, type SortKey } from "@/apps/files/FileViews"
 import { InfoDialog } from "@/apps/files/InfoDialog"
+import { ShareDialog } from "@/apps/files/ShareDialog"
 import { baseName, crumbsOf, parentOf } from "@/apps/files/paths"
 import { PreviewPane } from "@/apps/files/PreviewPane"
 import { Sidebar, type Location } from "@/apps/files/Sidebar"
@@ -69,6 +70,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
   const [query, setQuery] = useState("")
   const [debounced, setDebounced] = useState("")
   const [info, setInfo] = useState<FileRef | null>(null)
+  const [shareTarget, setShareTarget] = useState<FileRef | null>(null)
   const [confirm, setConfirm] = useState<FileEntry[] | null>(null)
   const [ctx, setCtx] = useState<"item" | "blank">("blank")
   const [dropActive, setDropActive] = useState(false)
@@ -352,6 +354,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         {one && <Item onSelect={() => setRenaming(one.path)} disabled={readOnly}>{t("files.rename")}</Item>}
         <Sep />
         {one?.isDir && <Item onSelect={() => favorite(one)}>{t("files.add_favorite")}</Item>}
+        {one?.isDir && <Item onSelect={() => root && setShareTarget({ root, path: one.path })}>{t("files.share_network")}</Item>}
         {one && terminal?.enabled && <Item onSelect={() => openInTerminal(one.isDir ? one.path : parentOf(one.path))}>{t("files.open_in_terminal")}</Item>}
         {one && <Item onSelect={() => root && setInfo({ root, path: one.path })}>{t("files.get_info")}</Item>}
         <Sep />
@@ -373,6 +376,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
       <Sep />
       <Item onSelect={() => { const v = !showHidden; setShowHidden(v); lsSet(LS.hidden, v ? "1" : "0") }}>{showHidden ? t("files.hide_hidden") : t("files.show_hidden")}</Item>
       <Item onSelect={refresh}>{t("common.refresh")}</Item>
+      {dir && <Item onSelect={() => setShareTarget({ root: dir.root, path: dir.path })}>{t("files.share_network")}</Item>}
       {dir && terminal?.enabled && <Item onSelect={() => openInTerminal(dir.path)}>{t("files.open_in_terminal")}</Item>}
       <Item onSelect={() => dir && setInfo({ root: dir.root, path: dir.path })}>{t("files.get_info")}</Item>
     </>
@@ -388,6 +392,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
       { label: t("files.upload_files"), onSelect: () => fileInput.current?.click(), disabled: readOnly || !dir },
       { label: t("files.rename"), onSelect: () => selected[0] && setRenaming(selected[0].path), disabled: readOnly || selected.length !== 1, separatorBefore: true },
       { label: t("files.get_info"), onSelect: () => root && selected[0] && setInfo({ root, path: selected[0].path }), disabled: selected.length !== 1 },
+      { label: t("files.share_network"), onSelect: () => root && setShareTarget(selected.length === 1 && selected[0].isDir ? { root, path: selected[0].path } : { root, path: dir?.path ?? "/" }), disabled: !dir || (selected.length === 1 && !selected[0].isDir) || selected.length > 1 },
       ...(terminal?.enabled ? [{ label: t("files.open_in_terminal"), onSelect: () => openInTerminal(selected.length === 1 ? (selected[0].isDir ? selected[0].path : parentOf(selected[0].path)) : (dir?.path ?? "/")), disabled: !dir }] : []),
       { label: t("files.move_to_trash"), shortcut: label("files.trash"), onSelect: () => trash(selected), disabled: readOnly || selected.length === 0, separatorBefore: true },
     ],
@@ -542,6 +547,7 @@ export default function FilesApp({ props }: DesktopAppProps) {
         {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} />
       <UploadTray />
       <InfoDialog target={info} onClose={() => setInfo(null)} />
+      <ShareDialog target={shareTarget} rootName={roots?.find((r) => r.id === shareTarget?.root)?.name ?? ""} onClose={() => setShareTarget(null)} />
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
