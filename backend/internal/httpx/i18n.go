@@ -119,5 +119,12 @@ var catalogPT = map[string]string{
 	"wrong password":                                                      "senha incorreta",
 	"too many attempts, wait a minute":                                    "tentativas demais, aguarde um minuto",
 	"sign in required":                                                    "é necessário entrar",
-	"%s":                                                                  "%s",
+	"invalid share name %q (letters, numbers, spaces and . _ - only)":     "nome de compartilhamento inválido %q (use letras, números, espaços e . _ -)",
+	"this folder's path has characters Samba cannot share (%%, backslash or leading/trailing spaces)": "o caminho desta pasta tem caracteres que o Samba não aceita (%%, barra invertida ou espaços nas pontas)",
+	"network sharing is not set up on this server":                                                    "o compartilhamento em rede não está configurado neste servidor",
+	"a share named %q already exists":                                                                 "já existe um compartilhamento chamado %q",
+	"this folder is already shared":                                                                   "esta pasta já está compartilhada",
+	"unknown share":                                                                                   "compartilhamento desconhecido",
+	"could not write the Samba configuration: %v":                                                     "não foi possível gravar a configuração do Samba: %v",
+	"%s": "%s",
 }

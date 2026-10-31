@@ -16,6 +16,7 @@ import (
 	"github.com/JonathanLemes/nodedesk/backend/internal/docker"
 	"github.com/JonathanLemes/nodedesk/backend/internal/files"
 	"github.com/JonathanLemes/nodedesk/backend/internal/settings"
+	"github.com/JonathanLemes/nodedesk/backend/internal/shares"
 	"github.com/JonathanLemes/nodedesk/backend/internal/storage"
 	"github.com/JonathanLemes/nodedesk/backend/internal/system"
 	"github.com/JonathanLemes/nodedesk/backend/internal/terminal"
@@ -34,6 +35,7 @@ type Deps struct {
 	Widgets  *widgets.Store
 	Files    *files.Manager
 	Storage  *storage.Service
+	Shares   *shares.Service
 	Terminal *terminal.Manager // nil when the terminal is disabled
 	Web      fs.FS             // built frontend (may be empty in development)
 	Version  string
@@ -81,6 +83,7 @@ func (s *Server) Handler() http.Handler {
 			r.Route("/docker", s.dockerRoutes)
 			r.Route("/files", s.fileRoutes)
 			r.Route("/storage", s.storageRoutes)
+			r.Route("/shares", s.shareRoutes)
 			r.Route("/terminal", s.terminalRoutes)
 			r.Get("/audit", s.listAudit)
 		})

@@ -229,3 +229,55 @@ func itoa(i int) string {
 	}
 	return string(b)
 }
+
+// HostDir resolves a directory inside a root to its real absolute host path, for
+// handing it to another service (e.g. Samba). The result is checked to stay inside
+// the root after resolving symlinks and to not overlap NodeDesk's protected data.
+func (m *Manager) HostDir(rootID, p string) (string, Root, error) {
+	rel, err := Clean(p)
+	if err != nil {
+		return "", Root{}, err
+	}
+	h, r, err := m.open(rootID)
+	if err != nil {
+		return "", r, err
+	}
+	defer h.Close()
+	if err := m.denied(r, rel); err != nil {
+		return "", r, err
+	}
+	fi, err := h.Stat(rel)
+	if err != nil {
+		return "", r, pathErr(err)
+	}
+	if !fi.IsDir() {
+		return "", r, httpx.BadRequest("not a directory")
+	}
+	rootReal, err := filepath.EvalSymlinks(r.Path)
+	if err != nil {
+		return "", r, pathErr(err)
+	}
+	real, err := filepath.EvalSymlinks(filepath.Join(r.Path, filepath.FromSlash(rel)))
+	if err != nil {
+		return "", r, pathErr(err)
+	}
+	if !within(real, rootReal) {
+		return "", r, httpx.Forbidden("path escapes the authorised root")
+	}
+	for _, pr := range m.protected {
+		if within(real, pr) {
+			return "", r, httpx.Forbidden("that location is protected")
+		}
+	}
+	return real, r, nil
+}
+
+// ContainsProtected reports whether a host directory contains NodeDesk's own data.
+func (m *Manager) ContainsProtected(dir string) bool {
+	for _, p := range m.protected {
+		if within(p, dir) {
+			return true
+		}
+	}
+	return false
+}

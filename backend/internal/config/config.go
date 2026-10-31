@@ -24,6 +24,7 @@ type Config struct {
 	TerminalShell     string        // empty = $SHELL
 	TerminalDetachTTL time.Duration // how long a shell survives without a connected browser
 	SeedRoots         []Root        // used only when no root is stored yet
+	SambaConf         string        // file smb.conf includes for network shares (see deploy/samba-setup.sh)
 }
 
 type Root struct {
@@ -41,6 +42,7 @@ func Load() (*Config, error) {
 
 		TerminalEnabled: os.Getenv("NODEDESK_TERMINAL") != "disabled",
 		TerminalShell:   os.Getenv("NODEDESK_TERMINAL_SHELL"),
+		SambaConf:       os.Getenv("NODEDESK_SAMBA_CONF"),
 	}
 	ttl, err := time.ParseDuration(env("NODEDESK_TERMINAL_DETACH_TTL", "5m"))
 	if err != nil || ttl <= 0 {

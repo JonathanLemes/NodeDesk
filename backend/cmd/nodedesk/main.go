@@ -23,6 +23,7 @@ import (
 	"github.com/JonathanLemes/nodedesk/backend/internal/docker"
 	"github.com/JonathanLemes/nodedesk/backend/internal/files"
 	"github.com/JonathanLemes/nodedesk/backend/internal/settings"
+	"github.com/JonathanLemes/nodedesk/backend/internal/shares"
 	"github.com/JonathanLemes/nodedesk/backend/internal/storage"
 	"github.com/JonathanLemes/nodedesk/backend/internal/system"
 	"github.com/JonathanLemes/nodedesk/backend/internal/terminal"
@@ -76,6 +77,9 @@ func run() error {
 		slog.Warn("could not seed file root", "err", e)
 	}
 
+	shareSvc := shares.New(db, cfg.SambaConf, shareResolver{fileMgr})
+	shareSvc.Sync()
+
 	sys := system.NewCollector()
 	dockerSvc := docker.New(cfg.DockerHost)
 	appSvc := apps.NewService(apps.NewStore(db), dockerSvc)
@@ -88,7 +92,7 @@ func run() error {
 	srv := api.New(api.Deps{
 		Config: cfg, Auth: authSvc, Audit: audit.New(db), Settings: settingsStore,
 		System: sys, Docker: dockerSvc, Apps: appSvc, Widgets: widgets.NewStore(db, settingsStore),
-		Files: fileMgr, Storage: storage.New(), Terminal: term, Web: web.FS(), Version: version,
+		Files: fileMgr, Storage: storage.New(), Shares: shareSvc, Terminal: term, Web: web.FS(), Version: version,
 	})
 
 	httpSrv := &http.Server{
@@ -126,3 +130,13 @@ func run() error {
 	appSvc.Close()
 	return err
 }
+
+// shareResolver adapts the file manager to what the Samba shares need.
+type shareResolver struct{ m *files.Manager }
+
+func (r shareResolver) HostDir(root, p string) (string, bool, error) {
+	dir, info, err := r.m.HostDir(root, p)
+	return dir, info.ReadOnly, err
+}
+
+func (r shareResolver) ContainsProtected(dir string) bool { return r.m.ContainsProtected(dir) }
