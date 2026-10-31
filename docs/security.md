@@ -46,6 +46,10 @@ Only folders you authorise (Settings → File Access) are reachable. `/` is not 
 - **Previews are untrusted content.** `/api/files/raw` serves files with `Content-Security-Policy: sandbox; default-src 'none'`, `X-Content-Type-Options: nosniff`, and HTML / XML / unknown types are downgraded to `text/plain`. A file in a managed folder cannot run script on NodeDesk's origin. (PDFs skip only the `sandbox` directive, which breaks the browser's PDF viewer, and are otherwise inert.)
 - Symlinks are never followed when copying, zipping or searching.
 
+## Network shares
+
+"Share on Network" publishes a folder over SMB to **everyone on the local network, without a password** (the CasaOS model), acting as the NodeDesk user. Only share what your LAN may read and change, and do not forward port 445 to the internet. The share path is resolved through the same root checks as Files (symlinks resolved, must stay inside the root, the data directory cannot be shared); names and paths that could inject Samba options (`%` variables, newlines, `[`…) are rejected. NodeDesk itself only gets write access to one include file and one `sudo` rule (`smbcontrol smbd reload-config`), both created by `deploy/samba-setup.sh`.
+
 ## Disk analysis
 
 The analysis endpoint only accepts folders on a real mounted disk (as reported by the storage overview) or inside an authorised folder; it never crosses filesystems, never follows symlinks, runs on demand only and is cancellable.

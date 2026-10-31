@@ -14,6 +14,7 @@ NodeDesk is configured with environment variables (process-level) and with the *
 | `NODEDESK_TERMINAL` | enabled | `disabled` removes the Terminal app and its API. |
 | `NODEDESK_TERMINAL_SHELL` | `$SHELL` | Shell to start (falls back to `/bin/bash`, then `/bin/sh`). It runs as a login shell. |
 | `NODEDESK_TERMINAL_DETACH_TTL` | `5m` | How long a shell survives without a connected browser before it is ended. |
+| `NODEDESK_SAMBA_CONF` | `/etc/samba/nodedesk.conf` | Samba include file NodeDesk writes its network shares to ([setup](deployment.md#network-sharing-samba)). |
 | `NODEDESK_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error`. |
 
 ## In-app settings
